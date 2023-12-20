@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnalysisParalysis", "AnalysisParalysis.csproj", "{B9D7CFDE-CE4B-49B6-98E0-590EBFC1E56D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B9D7CFDE-CE4B-49B6-98E0-590EBFC1E56D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9D7CFDE-CE4B-49B6-98E0-590EBFC1E56D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9D7CFDE-CE4B-49B6-98E0-590EBFC1E56D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9D7CFDE-CE4B-49B6-98E0-590EBFC1E56D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F1FB9BE1-C323-4A1E-81A3-7B49D9E9B978}
+	EndGlobalSection
+EndGlobal
