@@ -15,30 +15,30 @@ build_property.GenerateRazorMetadataSourceChecksumAttributes =
 build_property.MSBuildProjectDirectory = d:\Documents\repos\Personal Repos\AnalysisParalysis
 build_property._RazorSourceGeneratorDebug = 
 
-[D:/Documents/repos/Personal Repos/AnalysisParalysis/App.razor]
+[d:/Documents/repos/Personal Repos/AnalysisParalysis/App.razor]
 build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Documents/repos/Personal Repos/AnalysisParalysis/Pages/Index.razor]
+[d:/Documents/repos/Personal Repos/AnalysisParalysis/Pages/Index.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5kZXgucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Documents/repos/Personal Repos/AnalysisParalysis/Shared/MainLayout.razor]
+[d:/Documents/repos/Personal Repos/AnalysisParalysis/Shared/MainLayout.razor]
 build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXE1haW5MYXlvdXQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Documents/repos/Personal Repos/AnalysisParalysis/_Imports.razor]
+[d:/Documents/repos/Personal Repos/AnalysisParalysis/_Imports.razor]
 build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Documents/repos/Personal Repos/AnalysisParalysis/Pages/Error.cshtml]
+[d:/Documents/repos/Personal Repos/AnalysisParalysis/Pages/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRXJyb3IuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Documents/repos/Personal Repos/AnalysisParalysis/Pages/_Host.cshtml]
+[d:/Documents/repos/Personal Repos/AnalysisParalysis/Pages/_Host.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcX0hvc3QuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Documents/repos/Personal Repos/AnalysisParalysis/Pages/_Layout.cshtml]
+[d:/Documents/repos/Personal Repos/AnalysisParalysis/Pages/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcX0xheW91dC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
