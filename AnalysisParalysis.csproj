@@ -7,4 +7,8 @@
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="6.11.2" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Data\Models\BoardGameGeek\" />
+    <Folder Include="Mappers\" />
+  </ItemGroup>
 </Project>

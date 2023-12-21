@@ -1,4 +1,4 @@
-using AnalysisParalysis.Data.Models;
+using AnalysisParalysis.Data.Models.BoardGameGeek;
 
 namespace AnalysisParalysis.Data.Definitions;
 
@@ -6,5 +6,5 @@ public interface IBoardGameRepository
 {
     Task<Collection?> GetCollection(string bggUserName);
 
-    Task<BoardGame?> GetBoardGameDetails(int boardGameId);
+    Task<Thing?> GetBoardGameDetails(int boardGameId);
 }

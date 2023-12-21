@@ -13,17 +13,21 @@
         StartIcon="@Icons.Material.Rounded.Hail" Size="Size.Large">
         Join Session
     </MudButton>
-    <BoardGameComponent GameToDisplay="@Testing" />
+    @foreach(var game in Testing)
+    {
+        <BoardGameComponent GameToDisplay="@game" />
+    }
 </MudContainer>
 
 @code 
 {
-    public BoardGame Testing = new BoardGame();
+    public List<BoardGame> Testing = new List<BoardGame>();
 
     protected override async Task OnInitializedAsync()
     {
         var number = new Random().Next(1, 10000);
-        Testing = await _boardGameRepo.GetBoardGameDetails(number);
+        var temp = await _boardGameRepo.GetCollection("FricKtion95");
+        Testing = BoardGameMapper.MapFromCollection(temp).ToList();
     }
 
     public void OpenUserDialog()

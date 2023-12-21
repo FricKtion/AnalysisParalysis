@@ -3,6 +3,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using AnalysisParalysis.Data.Definitions;
 using AnalysisParalysis.Data.Models;
+using AnalysisParalysis.Data.Models.BoardGameGeek;
 using AnalysisParalysis.Services.Definitions;
 
 namespace AnalysisParalysis.Data;
@@ -45,7 +46,7 @@ public class BoardGameRepository : IBoardGameRepository
         return await ParseApiResponse<Collection>(apiResponse);
     }
 
-    public async Task<BoardGame?> GetBoardGameDetails(int boardGameId)
+    public async Task<Thing?> GetBoardGameDetails(int boardGameId)
     {
         var baseUrl = _appSettingService.Setting<string>("GameApiBaseUrl");
         
@@ -58,7 +59,7 @@ public class BoardGameRepository : IBoardGameRepository
         if(!apiResponse.IsSuccessStatusCode)
             return null;
             
-        return await ParseApiResponse<BoardGame>(apiResponse);
+        return await ParseApiResponse<Thing>(apiResponse);
     }
 
     private async Task<T> ParseApiResponse<T>(HttpResponseMessage apiResponse)
