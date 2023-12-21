@@ -1,14 +1,15 @@
 ﻿@page "/"
 @inject IBoardGameRepository _boardGameRepo;
+@inject IDialogService _dialogService;
 
 <PageTitle>Index</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large">
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" 
+    <MudButton @onclick="OpenUserDialog" Variant="Variant.Filled" Color="Color.Primary" 
         StartIcon="@Icons.Material.Rounded.GroupAdd" Size="Size.Large">
         Create Session
     </MudButton>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" 
+    <MudButton @onclick="OpenSessionDialog" Variant="Variant.Filled" Color="Color.Primary" 
         StartIcon="@Icons.Material.Rounded.Hail" Size="Size.Large">
         Join Session
     </MudButton>
@@ -23,5 +24,18 @@
     {
         var number = new Random().Next(1, 10000);
         Testing = await _boardGameRepo.GetBoardGameDetails(number);
+    }
+
+    public void OpenUserDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        _dialogService.Show<UserDialog>("Whose library?", options);
+    }
+
+    public void OpenSessionDialog() 
+    {
+        // TODO - This is almost exactly the same as the user dialog (including the actual dialog file). Generalize.
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        _dialogService.Show<SessionDialog>("Which session?", options);
     }
 }
