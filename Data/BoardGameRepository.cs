@@ -1,3 +1,6 @@
+using System.Security;
+using System.Xml;
+using System.Xml.Serialization;
 using AnalysisParalysis.Data.Definitions;
 using AnalysisParalysis.Data.Models;
 using AnalysisParalysis.Services.Definitions;
@@ -10,18 +13,16 @@ public class BoardGameRepository : IBoardGameRepository
 
     private readonly HttpClient _httpClient;
 
-    private readonly int _maxRetry;
-
     public BoardGameRepository(IAppSettingService appSettings,  IHttpClientFactory httpClientFactory)
         => (_appSettingService, _httpClient) = (appSettings, httpClientFactory.CreateClient());
 
     public async Task<Collection?> GetCollection(string bggUserName)
     {
-        var baseUrl = _appSettingService.Setting<string>("gameApiBaseUrl");
-        var maxRetry = _appSettingService.Setting<int>("maxRetry");
+        var baseUrl = _appSettingService.Setting<string>("GameApiBaseUrl");
+        var maxRetry = _appSettingService.Setting<int>("MaxRetry");
         
         var collectionEndpoint = $"{baseUrl}/collection"
-            + "?username={bggUserName}"
+            + $"?username={bggUserName}"
             + "&excludesubtype=boardgameexpansion"
             + "&own=1";
 
@@ -41,26 +42,30 @@ public class BoardGameRepository : IBoardGameRepository
         if(!apiResponse.IsSuccessStatusCode)
             return null;
 
-        return ParseApiResponse<Collection>(apiResponse);
+        return await ParseApiResponse<Collection>(apiResponse);
     }
 
     public async Task<BoardGame?> GetBoardGameDetails(int boardGameId)
     {
-        var baseUrl = _appSettingService.Setting<string>("gameApiBaseUrl");
+        var baseUrl = _appSettingService.Setting<string>("GameApiBaseUrl");
         
         var gameEndpoint = $"{baseUrl}/thing"
-            + "?type=boardgame";
+            + "?type=boardgame"
+            + $"&id={boardGameId}";
 
         var apiResponse = await _httpClient.GetAsync(gameEndpoint);
 
         if(!apiResponse.IsSuccessStatusCode)
             return null;
             
-        return ParseApiResponse<BoardGame>(apiResponse);
+        return await ParseApiResponse<BoardGame>(apiResponse);
     }
 
-    private T ParseApiResponse<T>(HttpResponseMessage apiResponse)
+    private async Task<T> ParseApiResponse<T>(HttpResponseMessage apiResponse)
     {
-        throw new NotImplementedException();
+        var responseContent = await apiResponse.Content.ReadAsStreamAsync();
+        var serializer = new XmlSerializer(typeof(T));
+
+        return (T)serializer.Deserialize(responseContent) ?? default(T);
     }
 }

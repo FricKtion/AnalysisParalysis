@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "d:\\Documents\\repos\\Personal Repos\\AnalysisParalysis\\AnalysisParalysis.csproj": {}
+    "D:\\Documents\\repos\\Personal Repos\\AnalysisParalysis\\AnalysisParalysis.csproj": {}
   },
   "projects": {
-    "d:\\Documents\\repos\\Personal Repos\\AnalysisParalysis\\AnalysisParalysis.csproj": {
+    "D:\\Documents\\repos\\Personal Repos\\AnalysisParalysis\\AnalysisParalysis.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "d:\\Documents\\repos\\Personal Repos\\AnalysisParalysis\\AnalysisParalysis.csproj",
+        "projectUniqueName": "D:\\Documents\\repos\\Personal Repos\\AnalysisParalysis\\AnalysisParalysis.csproj",
         "projectName": "AnalysisParalysis",
-        "projectPath": "d:\\Documents\\repos\\Personal Repos\\AnalysisParalysis\\AnalysisParalysis.csproj",
+        "projectPath": "D:\\Documents\\repos\\Personal Repos\\AnalysisParalysis\\AnalysisParalysis.csproj",
         "packagesPath": "C:\\Users\\CodyDesktop\\.nuget\\packages\\",
-        "outputPath": "d:\\Documents\\repos\\Personal Repos\\AnalysisParalysis\\obj\\",
+        "outputPath": "D:\\Documents\\repos\\Personal Repos\\AnalysisParalysis\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"

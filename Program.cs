@@ -1,13 +1,26 @@
+using AnalysisParalysis.Data;
+using AnalysisParalysis.Data.Definitions;
+using AnalysisParalysis.Services;
+using AnalysisParalysis.Services.Definitions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration
+    .SetBasePath(builder.Environment.ContentRootPath)
+    .AddEnvironmentVariables();
+
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
+
+builder.Services.AddHttpClient<IBoardGameRepository>();
+
+builder.Services.AddScoped<IAppSettingService, AppSettingService>();
+builder.Services.AddScoped<IBoardGameRepository, BoardGameRepository>();
 
 var app = builder.Build();
 

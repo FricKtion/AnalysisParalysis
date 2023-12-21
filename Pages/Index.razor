@@ -1,9 +1,27 @@
 ﻿@page "/"
+@inject IBoardGameRepository _boardGameRepo;
 
 <PageTitle>Index</PageTitle>
 
-<MudPaper Square="true">
-    <MudContainer MaxWidth="MaxWidth.Large">
-        <MudText>BGG Username: </MudText>
-    </MudContainer>
-</MudPaper>
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" 
+        StartIcon="@Icons.Material.Rounded.GroupAdd" Size="Size.Large">
+        Create Session
+    </MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" 
+        StartIcon="@Icons.Material.Rounded.Hail" Size="Size.Large">
+        Join Session
+    </MudButton>
+    <BoardGameComponent GameToDisplay="@Testing" />
+</MudContainer>
+
+@code 
+{
+    public BoardGame Testing = new BoardGame();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var number = new Random().Next(1, 10000);
+        Testing = await _boardGameRepo.GetBoardGameDetails(number);
+    }
+}

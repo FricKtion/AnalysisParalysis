@@ -1,0 +1,16 @@
+﻿<MudCard>
+    <MudCardContent>
+        <MudImage 
+            Src="@GameToDisplay.Thumbnail?.ToString()" 
+            Alt="@($"{GameToDisplay.Name} cover art")"
+            Class="rounded-lg" />
+        <MudText>@GameToDisplay.Name</MudText>
+    </MudCardContent>
+</MudCard>
+
+@code {
+
+    [Parameter]
+    public BoardGame GameToDisplay { get; set; } = new BoardGame();
+
+}
