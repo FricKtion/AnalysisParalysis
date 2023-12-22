@@ -13,27 +13,49 @@
         StartIcon="@Icons.Material.Rounded.Hail" Size="Size.Large">
         Join Session
     </MudButton>
-    @foreach(var game in Testing)
+
+    @if(GamesAreLoading)
     {
-        <BoardGameComponent GameToDisplay="@game" />
+        <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+    }
+
+    @if(GamesInSession.Count() > 0 && CurrentSession.SessionId != -1) 
+    {
+        @foreach(var game in GamesInSession)
+        {
+            <BoardGameComponent GameToDisplay="@game" />
+        }
     }
 </MudContainer>
 
 @code 
 {
-    public List<BoardGame> Testing = new List<BoardGame>();
+    public List<BoardGame> GamesInSession = new List<BoardGame>();
+    
+    public GamePickingSession CurrentSession = new GamePickingSession();
 
-    protected override async Task OnInitializedAsync()
-    {
-        var number = new Random().Next(1, 10000);
-        var temp = await _boardGameRepo.GetCollection("FricKtion95");
-        Testing = BoardGameMapper.MapFromCollection(temp).ToList();
-    }
+    public bool GamesAreLoading = false;
 
-    public void OpenUserDialog()
+    public async Task OpenUserDialog()
     {
         var options = new DialogOptions { CloseOnEscapeKey = true };
-        _dialogService.Show<UserDialog>("Whose library?", options);
+        var dialog = await _dialogService.ShowAsync<UserDialog>("Whose library?", options);
+        var dialogResult = await dialog.Result;
+
+        if(!dialogResult.Canceled)
+        {
+            var bggUser = dialogResult.Data.ToString();
+
+            GamesAreLoading = true;
+            StateHasChanged();
+
+            var userCollection = await _boardGameRepo.GetCollection(bggUser);            
+            GamesInSession = BoardGameMapper.MapFromCollection(userCollection).ToList();
+            CurrentSession = new GamePickingSession(100);
+
+            GamesAreLoading = false;
+            StateHasChanged();
+        }
     }
 
     public void OpenSessionDialog() 
