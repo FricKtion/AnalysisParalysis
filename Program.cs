@@ -22,6 +22,8 @@ builder.Services.AddHttpClient<IBoardGameRepository>();
 builder.Services.AddScoped<IAppSettingService, AppSettingService>();
 builder.Services.AddScoped<IBoardGameRepository, BoardGameRepository>();
 
+builder.Services.AddSingleton<ISessionHostingService, SessionHostingService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

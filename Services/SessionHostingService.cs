@@ -31,6 +31,4 @@ public class SessionHostingService : ISessionHostingService
         else
             throw new InvalidSessionIdException($"Could not find a session with ID: {sessionId}.");            
     }
-
-    
 }

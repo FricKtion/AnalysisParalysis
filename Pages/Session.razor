@@ -1,0 +1,64 @@
+@page "/Session/{bgguser}"
+@inject IBoardGameRepository _boardGameRepo;
+@inject ISessionHostingService _sessionManager;
+
+<MudContainer Class="d-flex align-center" Fixed="true">
+    <MudGrid Class="d-flex align-center flex-grow-1" Spacing="4" Justify="Justify.Center">
+        @if(_session.SessionIsReady)
+        {
+            <MudItem Class="py-4 d-flex flex-1" xs="12">
+                <MudText Typo="Typo.h5">Session ID: @(_session.SessionId)</MudText>
+            </MudItem>
+        }
+        @foreach(var game in _availableGames)
+        {
+            <MudItem Class="py-4 d-flex flex-1" xs="6" md="2">
+                <BoardGameComponent GameToDisplay="@game" />
+            </MudItem>
+        }
+    </MudGrid>
+</MudContainer>
+
+<MudOverlay Visible="_gamesLoading" DarkBackground="true" Absolute="true">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+</MudOverlay>
+
+@code 
+{
+    // TODO - Need to setup SignalR such that all users on this page for a particular session are looking at the same thing.
+    // TODO - Need a way to "end" a session when nobody is connected to it.
+
+    [Parameter]
+    public string BggUser { get; set; } = "";
+
+    private List<BoardGame> _availableGames = new List<BoardGame>();
+
+    private GamePickingSession _session = new GamePickingSession();
+
+    private bool _gamesLoading = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _gamesLoading = true;
+        StateHasChanged();
+
+        var userCollection = await _boardGameRepo.GetCollection(BggUser);
+
+        if(userCollection != null && userCollection.Items.Count() > 0)
+        {
+            _availableGames = BoardGameMapper.MapFromCollection(userCollection).ToList();
+            StateHasChanged();
+        }
+            
+        // TODO - Should probably say something if no games were found.
+
+        // If the session isn't active it must be a new one so we need to setup a session.
+        if(_session.SessionId <= 0)
+            _session = _sessionManager.StartSession();
+        
+        _gamesLoading = false;
+        StateHasChanged();
+
+        await base.OnParametersSetAsync();
+    }
+}

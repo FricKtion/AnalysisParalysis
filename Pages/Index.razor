@@ -1,42 +1,31 @@
 ﻿@page "/"
-@inject IBoardGameRepository _boardGameRepo;
 @inject IDialogService _dialogService;
+@inject NavigationManager _navManager;
 
 <PageTitle>Index</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large">
-    <MudButton @onclick="OpenUserDialog" Variant="Variant.Filled" Color="Color.Primary" 
-        StartIcon="@Icons.Material.Rounded.GroupAdd" Size="Size.Large">
-        Create Session
-    </MudButton>
-    <MudButton @onclick="OpenSessionDialog" Variant="Variant.Filled" Color="Color.Primary" 
-        StartIcon="@Icons.Material.Rounded.Hail" Size="Size.Large">
-        Join Session
-    </MudButton>
-
-    @if(GamesAreLoading)
-    {
-        <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
-    }
-
-    @if(GamesInSession.Count() > 0 && CurrentSession.SessionId != -1) 
-    {
-        @foreach(var game in GamesInSession)
-        {
-            <BoardGameComponent GameToDisplay="@game" />
-        }
-    }
+<MudContainer Class="d-flex align-center" Fixed="true">
+    <MudGrid Class="d-flex align-center flex-grow-1" Spacing="4" Justify="Justify.Center">
+        <MudItem Class="py-4 d-flex flex-1" xs="8" md="4">
+            <MudButton Class="d-flex align-center justify-center mud-width-full py-8"
+                @onclick="NewSessionDialog" Variant="Variant.Filled" Color="Color.Primary" 
+                StartIcon="@Icons.Material.Rounded.GroupAdd" Size="Size.Large">
+                Create Session
+            </MudButton>
+        </MudItem>
+        <MudItem Class="py-4 d-flex flex-1" xs="8" md="4">
+            <MudButton Class="d-flex align-center justify-center mud-width-full py-8"
+                @onclick="JoinSessionDialog" Variant="Variant.Filled" Color="Color.Primary" 
+                StartIcon="@Icons.Material.Rounded.Hail" Size="Size.Large">
+                Join Session
+            </MudButton>
+        </MudItem>
+    </MudGrid>
 </MudContainer>
 
 @code 
-{
-    public List<BoardGame> GamesInSession = new List<BoardGame>();
-    
-    public GamePickingSession CurrentSession = new GamePickingSession();
-
-    public bool GamesAreLoading = false;
-
-    public async Task OpenUserDialog()
+{    
+    public async Task NewSessionDialog()
     {
         var options = new DialogOptions { CloseOnEscapeKey = true };
         var dialog = await _dialogService.ShowAsync<UserDialog>("Whose library?", options);
@@ -45,20 +34,11 @@
         if(!dialogResult.Canceled)
         {
             var bggUser = dialogResult.Data.ToString();
-
-            GamesAreLoading = true;
-            StateHasChanged();
-
-            var userCollection = await _boardGameRepo.GetCollection(bggUser);            
-            GamesInSession = BoardGameMapper.MapFromCollection(userCollection).ToList();
-            CurrentSession = new GamePickingSession(100);
-
-            GamesAreLoading = false;
-            StateHasChanged();
+            _navManager.NavigateTo($"/Session/{dialogResult.Data.ToString()}");
         }
     }
 
-    public void OpenSessionDialog() 
+    public void JoinSessionDialog() 
     {
         // TODO - This is almost exactly the same as the user dialog (including the actual dialog file). Generalize.
         var options = new DialogOptions { CloseOnEscapeKey = true };

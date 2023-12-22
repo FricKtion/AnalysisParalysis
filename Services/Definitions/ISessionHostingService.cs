@@ -3,7 +3,7 @@ using AnalysisParalysis.Services.Models;
 
 namespace AnalysisParalysis.Services.Definitions;
 
-public interface ISessionHostingService 
+public interface ISessionHostingService
 {
     GamePickingSession StartSession();
 
