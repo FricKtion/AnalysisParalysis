@@ -1,21 +1,27 @@
 @page "/Session/{bgguser}"
 @inject IBoardGameRepository _boardGameRepo;
 @inject ISessionHostingService _sessionManager;
+@inject IDialogService _dialogService;
 
-<MudContainer Class="d-flex align-center" Fixed="true">
-    <MudGrid Class="d-flex align-center flex-grow-1" Spacing="4" Justify="Justify.Center">
+<MudContainer>
+    <MudGrid Spacing="2" Justify="Justify.SpaceEvenly">
+        <MudItem xs="12"><MudSpacer /></MudItem>
         @if(_session.SessionIsReady)
         {
-            <MudItem Class="py-4 d-flex flex-1" xs="12">
+            <MudItem xs="12">
                 <MudText Typo="Typo.h5">Session ID: @(_session.SessionId)</MudText>
             </MudItem>
         }
-        @foreach(var game in _availableGames)
-        {
-            <MudItem Class="py-4 d-flex flex-1" xs="6" md="2">
-                <BoardGameComponent GameToDisplay="@game" />
-            </MudItem>
-        }
+        <MudItem xs="12">
+            <MudDataGrid T="BoardGame" Items="@_availableGames" Filterable="true" SelectedItemsChanged="@SelectedItemsChanged">
+                <Columns>
+                    <SelectColumn T="BoardGame" />
+                    <PropertyColumn Property="x => x.Name" Title="Title" />
+                    <PropertyColumn Property="x => x.TimesPlayed" Title="Times Played" />
+                    <PropertyColumn Property="x => x.YearPublished" Title="Year Published" />
+                </Columns>
+            </MudDataGrid>
+        </MudItem>
     </MudGrid>
 </MudContainer>
 
@@ -27,11 +33,17 @@
 {
     // TODO - Need to setup SignalR such that all users on this page for a particular session are looking at the same thing.
     // TODO - Need a way to "end" a session when nobody is connected to it.
+    // TODO - Add button to toggle extra information on board game cards.
+    // TODO - I think it would look nicer if the games were displayed on cards with their BGG images instead of in a data grid.
 
     [Parameter]
     public string BggUser { get; set; } = "";
 
+    public bool DisplayExtras { get; set; } = true;
+
     private List<BoardGame> _availableGames = new List<BoardGame>();
+
+    private List<BoardGame> _selectedGames = new List<BoardGame>();
 
     private GamePickingSession _session = new GamePickingSession();
 
@@ -60,5 +72,26 @@
         StateHasChanged();
 
         await base.OnParametersSetAsync();
+    }
+
+    // Events
+    async Task SelectedItemsChanged(HashSet<BoardGame> selectedGames)
+    {
+        if(selectedGames.Count() == 1)
+        {
+            var selectedGame = selectedGames.First();
+            if(!_selectedGames.Select(x => x.Id).Contains(selectedGame.Id))
+                _selectedGames.Add(selectedGame);
+            else
+                _selectedGames.Remove(selectedGame);
+        }
+        else
+        {
+            await _dialogService.ShowMessageBox(
+                "ERROR!",
+                "Please only select one game at a time.",
+                "OK"
+            );
+        }
     }
 }

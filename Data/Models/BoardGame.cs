@@ -11,4 +11,6 @@ public class BoardGame
     public int TimesPlayed { get; set; } = 0;
 
     public Uri? Thumbnail { get; set; }
+
+    public bool IsSelected { get; set; } = false;
 }
