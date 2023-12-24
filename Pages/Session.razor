@@ -23,9 +23,8 @@
         {
             @foreach(var game in _availableGames)
             {
-                // TODO - Display more games per row based on the size of the screen
-                <MudItem Style="display: flex; flex-direction: column; width 100%;" xs="6" sm="4" md="3">
-                    <MudCard Style="min-height: 500px;">
+                <MudItem xs="6" sm="4" md="3">
+                    <MudCard Height="100%" Class="d-flex flex-column">
                         <MudCardHeader>
                             <MudText Align="Align.Center" Typo="Typo.h6">@game.Name</MudText>
                         </MudCardHeader>
@@ -58,9 +57,8 @@
 {
     // TODO - Need to setup SignalR such that all users on this page for a particular session are looking at the same thing.
     // TODO - Need a way to "end" a session when nobody is connected to it.
-    // TODO - The cards are even width but their height changes.
     // TODO - Center the content of the cards.
-    // TODO - Description part at the bottom of the card looks like ass.
+    // TODO - Description part at the bottom of the card looks bad.
     // TODO - Top part of the page (with the Session ID and toggle button) look bad.
 
     [Parameter]
