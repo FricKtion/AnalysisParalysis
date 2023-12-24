@@ -31,4 +31,7 @@ public class SessionHostingService : ISessionHostingService
         else
             throw new InvalidSessionIdException($"Could not find a session with ID: {sessionId}.");            
     }
+
+    public bool SessionIsReady(int sessionId) 
+        => _activeSessions.Any(x => x.SessionId == sessionId && x.SessionIsReady);
 }

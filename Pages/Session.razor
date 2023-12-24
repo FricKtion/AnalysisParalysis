@@ -19,9 +19,9 @@
         }
     </MudGrid>
     <MudGrid Spacing="2" Justify="Justify.SpaceEvenly">
-        @if(_availableGames != null && _availableGames.Count > 0)
+        @if(_session.AvailableGames != null && _session.AvailableGames.Count > 0)
         {
-            @foreach(var game in _availableGames)
+            @foreach(var game in _session.AvailableGames)
             {
                 <MudItem xs="6" sm="4" md="3">
                     <MudCard Height="100%" Class="d-flex flex-column">
@@ -68,8 +68,6 @@
 
     public string InfoIcon { get; set; } = Icons.Material.Rounded.ExpandMore;
 
-    private List<BoardGame> _availableGames = new List<BoardGame>();
-
     private GamePickingSession _session = new GamePickingSession();
 
     private bool _gamesLoading = false;
@@ -79,19 +77,18 @@
         _gamesLoading = true;
         StateHasChanged();
 
-        var userCollection = await _boardGameRepo.GetCollection(BggUser);
+        // TODO - Need to make this work with more users
+        _session = _sessionManager.StartSession();
+        _session.JoinSession(new User() { Id = "TODO" });
 
+        var userCollection = await _boardGameRepo.GetCollection(BggUser);
         if(userCollection != null && userCollection.Items.Count() > 0)
         {
-            _availableGames = BoardGameMapper.MapFromCollection(userCollection).ToList();
+            _session.AvailableGames = BoardGameMapper.MapFromCollection(userCollection).ToList();
             StateHasChanged();
         }
             
         // TODO - Should probably say something if no games were found.
-
-        // If the session isn't active it must be a new one so we need to setup a session.
-        if(_session.SessionId <= 0)
-            _session = _sessionManager.StartSession();
         
         _gamesLoading = false;
         StateHasChanged();

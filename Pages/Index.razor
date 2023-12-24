@@ -1,6 +1,7 @@
 ﻿@page "/"
 @inject IDialogService _dialogService;
 @inject NavigationManager _navManager;
+@inject ISessionHostingService _sessionManager;
 
 <PageTitle>Index</PageTitle>
 
@@ -39,10 +40,27 @@
         }
     }
 
-    public void JoinSessionDialog() 
+    public async Task JoinSessionDialog() 
     {
         // TODO - This is almost exactly the same as the user dialog (including the actual dialog file). Generalize.
         var options = new DialogOptions { CloseOnEscapeKey = true };
-        _dialogService.Show<SessionDialog>("Which session?", options);
+        var dialog = await _dialogService.ShowAsync<SessionDialog>("Which session?", options);
+        var dialogResult = await dialog.Result;
+
+        if(!dialogResult.Canceled)
+        {
+            int.TryParse(dialogResult.Data.ToString(), out int sessionId);
+
+            if(_sessionManager.SessionIsReady(sessionId))
+            {
+                _navManager.NavigateTo($"/Session/{sessionId}");
+            }
+            else
+            {
+                var parameters = new DialogParameters();
+                parameters.Add("ErrorMessage", $"Could not find a session with ID '{sessionId}'");
+                await _dialogService.ShowAsync<ErrorDialog>("Unknown Session ID", parameters);
+            }
+        }
     }
 }

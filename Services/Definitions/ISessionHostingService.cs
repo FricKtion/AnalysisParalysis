@@ -8,4 +8,6 @@ public interface ISessionHostingService
     GamePickingSession StartSession();
 
     GamePickingSession JoinSession(int sessionId);
+
+    bool SessionIsReady(int sessionId);
 }
