@@ -49,5 +49,5 @@ public class SessionHostingService : ISessionHostingService
         => _activeSessions.Single(x => x.SessionIsReady && x.SessionId == sessionId);
 
     public bool SessionIsReady(int sessionId) 
-        => _activeSessions.Any(x => x.SessionId == sessionId && x.SessionIsReady);
+        => _activeSessions.Exists(x => x.SessionId == sessionId && x.SessionIsReady);
 }

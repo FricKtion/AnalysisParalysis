@@ -17,11 +17,11 @@ public class GamePickingSession
 
     public List<BoardGame> AvailableGames { get; set; } = new List<BoardGame>();
 
-    private Dictionary<User, List<BoardGame>> _selections = new Dictionary<User, List<BoardGame>>();
+    private readonly Dictionary<User, List<BoardGame>> _selections = new Dictionary<User, List<BoardGame>>();
 
     // TODO - Add an "owning" user so we know who created the session.
 
-    private List<User> _connectedUsers = new List<User>();
+    private readonly List<User> _connectedUsers = new List<User>();
 
     /// <summary>
     /// Chooses a random board game from the lists of user selections, as long as 
@@ -56,7 +56,7 @@ public class GamePickingSession
         {
             // TODO - Take into account the selections list getting smaller
             // TODO - Add more than one game from each user's list.
-            AvailableGames.Add(selectionsList.ElementAt(rng.Next(0, selectionsList.Count() - 1)));
+            AvailableGames.Add(selectionsList[rng.Next(0, selectionsList.Count - 1)]);
         }
 
         AvailableGames.ForEach(x => x.IsSelected = false);
