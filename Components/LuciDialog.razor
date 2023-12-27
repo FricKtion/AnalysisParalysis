@@ -1,0 +1,14 @@
+﻿<MudDialog>
+    <DialogContent>
+        <MudImage Height="250" Width="300" ObjectFit="ObjectFit.ScaleDown" Src="https://lh3.googleusercontent.com/pw/ABLVV87VVujTi5eG4l5u8Y9dDHMxqyaBgH26k7ynzmOXRLiSX7jfBxZ5qUlayqT5gLSSBs7u-cj3x3Nx8Es11QleflWmOcU9vlmRhxetHB3_rER6LrHhvbUgU0hSHb9BpVN5hens83p7sB_huE1Qe5f2ToSA=w1164-h1058-s-no?authuser=0"></MudImage>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
+
+    void Cancel() => MudDialog.Cancel();
+}

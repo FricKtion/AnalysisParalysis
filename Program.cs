@@ -2,6 +2,7 @@ using AnalysisParalysis.Data;
 using AnalysisParalysis.Data.Definitions;
 using AnalysisParalysis.Services;
 using AnalysisParalysis.Services.Definitions;
+using AnalysisParalysis.Services.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using MudBlazor.Services;
@@ -20,6 +21,8 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
 
 builder.Services.AddHttpClient<IBoardGameRepository>();
+
+builder.Services.AddScoped<User>();
 
 builder.Services.AddSingleton<IAppSettingService, AppSettingService>();
 builder.Services.AddSingleton<IBoardGameRepository, BoardGameRepository>();

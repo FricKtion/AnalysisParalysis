@@ -34,36 +34,48 @@ public class GamePickingSession
         foreach(var selectionList in _selections)
             allGames.AddRange(selectionList.Value);
 
+        if(_selections.Keys.Count > 1)
+            return ChooseFromSelections_MultipleUsers(allGames);
+        else if(_selections.Keys.Count == 1)
+            return ChooseFromSelections_SingleUser(allGames);
+        else 
+            throw new NoGamesFoundException("No users have selected games.");
+    }
+
+    private BoardGame? ChooseFromSelections_SingleUser(List<BoardGame> allGames)
+        => GameSelector.PickOne(allGames);
+
+    private BoardGame? ChooseFromSelections_MultipleUsers(List<BoardGame> allGames)
+    {
         var matches = GameSelector.FindMatches(allGames.ToArray());
 
         if(!matches.Any())
             return null;
 
-        var rng = new Random();
-        return matches.ElementAt(rng.Next(0, matches.Count() - 1));
+        return GameSelector.PickOne(matches);
     }
 
     /// <summary>
-    /// Limits the list of available games to a randomly selected game from
+    /// Limits the list of available games to a number of randomly selected games from
     /// each users list of selections. This will also clear all user selections. 
     /// </summary>
-    public void RestrictOptions()
+    /// <param name="countFromEachUser">The number of games from each user's selected list to include.</param>
+    public void RestrictOptions(int countFromEachUser)
     {
         AvailableGames.Clear();
 
         var rng = new Random();
-        var gamesFromEach = 2;
 
         foreach(var selectionsList in _selections.Values)
         {
-            if(selectionsList.Count < gamesFromEach)
+            if(selectionsList.Count < countFromEachUser)
             {
                 AvailableGames.AddRange(selectionsList);
             }
             else
             {
                 int i = 0;
-                while(i < gamesFromEach)
+                while(i < countFromEachUser)
                 {
                     var selectedIndex = rng.Next(0, selectionsList.Count - 1);
                     AvailableGames.Add(selectionsList[selectedIndex]);
@@ -99,10 +111,21 @@ public class GamePickingSession
         if(!_connectedUsers.Select(x => x.Id).Contains(user.Id))
             throw new UserNotConnectedException($"User '{user.Id}' isn't connected to this session.");
         
-        if(_selections.ContainsKey(user))
-            _selections[user].AddRange(selectedGames);
-        else
-            _selections.Add(user, selectedGames);
+        foreach(var game in selectedGames)
+        {
+            if(game.IsSelected)
+            {
+                if(_selections.ContainsKey(user))
+                    _selections[user].AddRange(selectedGames);
+                else
+                    _selections.Add(user, selectedGames);
+            }
+            else
+            {
+                if(_selections.ContainsKey(user))
+                    _selections[user].Remove(game);
+            }
+        }
     }
 
     // TODO - Should this be in the SessionHostingService?
