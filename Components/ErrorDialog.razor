@@ -10,7 +10,7 @@
 @code {
     // TODO - This popup sucks and is impossible to read.
     
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter]
     public string ErrorMessage { get; set; } = "";

@@ -42,12 +42,6 @@ public class Item
     [XmlElement("maxplayers")]
     public ValueOnlyElement MaxPlayers { get; set; } = new ValueOnlyElement();
 
-    // [XmlElement("poll")]
-    // public PollElement[] Polls { get; set; }
-
-    // [XmlElement("link")]
-    // public Link[] Links { get; set; }
-
     [XmlType("name")]
     public class NameElement
     {
@@ -80,13 +74,13 @@ public class Item
         public int TotalVotes { get; set; }
 
         [XmlElement("results")]
-        public PollResults[] Results { get; set; }
+        public PollResults[] Results { get; set; } = default!;
     }
 
     public class PollResults
     {
         [XmlAttribute("result")]
-        public PollResult[] Result { get; set; }
+        public PollResult[] Result { get; set; } = default!;
     }
 
     public class PollResult
@@ -107,6 +101,6 @@ public class Item
         public int Id { get; set; }
 
         [XmlAttribute("value")]
-        public string Value { get; set; }
+        public string Value { get; set; } = "";
     }
 }

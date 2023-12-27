@@ -27,6 +27,8 @@ public class SessionHostingService : ISessionHostingService
             potentialId = rng.Next(minId, maxId);
 
         var collection = await _boardGameRepo.GetCollection(bggUser);
+        if(collection == null)
+            throw new NoGamesFoundException($"No collection found for user '{bggUser}'.");
 
         var session = new GamePickingSession(potentialId);
         session.AvailableGames = BoardGameMapper.MapFromCollection(collection).ToList();

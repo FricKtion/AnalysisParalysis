@@ -46,6 +46,9 @@
             _preparingSession = true;
             StateHasChanged();
 
+            if(string.IsNullOrEmpty(bggUser))
+                throw new ArgumentNullException("bggUser");
+
             var session = await _sessionManager.StartSession(bggUser);
 
             _preparingSession = false;

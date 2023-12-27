@@ -9,7 +9,7 @@ public class Collection
     public int Count { get; set; } = 0;
 
     [XmlElement("item")]
-    public Item[] Items { get; set; }
+    public Item[] Items { get; set; } = default!;
 
     public class Item
     {

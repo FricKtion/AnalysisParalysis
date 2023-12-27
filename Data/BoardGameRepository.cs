@@ -67,7 +67,6 @@ public class BoardGameRepository : IBoardGameRepository
         var responseContent = await apiResponse.Content.ReadAsStreamAsync();
         var serializer = new XmlSerializer(typeof(T));
 
-        return (T)serializer.Deserialize(responseContent) ?? default(T);
+        return (T)(serializer.Deserialize(responseContent) ?? default(T)!);
     }
 }
-//no thank you
