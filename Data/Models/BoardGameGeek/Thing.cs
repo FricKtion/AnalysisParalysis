@@ -4,8 +4,6 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace AnalysisParalysis.Data.Models.BoardGameGeek;
 
-// TODO - Some of these properties aren't being properly deserialized. Ignoring for now because I don't need them.
-
 [XmlRoot("items")]
 public class Thing
 {

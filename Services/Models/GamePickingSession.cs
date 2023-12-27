@@ -42,9 +42,20 @@ public class GamePickingSession
             throw new NoGamesFoundException("No users have selected games.");
     }
 
+    /// <summary>
+    /// Select a single game from one user's selections.
+    /// </summary>
+    /// <param name="allGames">All games selected by the user.</param>
+    /// <returns>A BoardGame selected from <paramref name="allGames"/></returns>
     private BoardGame? ChooseFromSelections_SingleUser(List<BoardGame> allGames)
         => GameSelector.PickOne(allGames);
 
+    /// <summary>
+    /// If matches are found in the list, picks a single game from those matches.
+    /// If no matches are found, nothing is returned.
+    /// </summary>
+    /// <param name="allGames">All user's selected games.</param>
+    /// <returns>A singel BoardGame selected at random from the matches. If no matches, null.</returns>
     private BoardGame? ChooseFromSelections_MultipleUsers(List<BoardGame> allGames)
     {
         var matches = GameSelector.FindMatches(allGames.ToArray());

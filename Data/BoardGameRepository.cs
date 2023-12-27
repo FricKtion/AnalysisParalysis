@@ -8,6 +8,7 @@ using AnalysisParalysis.Services.Definitions;
 
 namespace AnalysisParalysis.Data;
 
+/// <inheritdoc />
 public class BoardGameRepository : IBoardGameRepository
 {
     private readonly IAppSettingService _appSettingService;
@@ -17,6 +18,7 @@ public class BoardGameRepository : IBoardGameRepository
     public BoardGameRepository(IAppSettingService appSettings,  IHttpClientFactory httpClientFactory)
         => (_appSettingService, _httpClient) = (appSettings, httpClientFactory.CreateClient());
 
+    /// <inheritdoc />
     public async Task<Collection?> GetCollection(string bggUserName)
     {
         var baseUrl = _appSettingService.Setting<string>("GameApiBaseUrl");
@@ -46,6 +48,7 @@ public class BoardGameRepository : IBoardGameRepository
         return await ParseApiResponse<Collection>(apiResponse);
     }
 
+    /// <inheritdoc />
     public async Task<Thing?> GetBoardGameDetails(int boardGameId)
     {
         var baseUrl = _appSettingService.Setting<string>("GameApiBaseUrl");
@@ -62,6 +65,12 @@ public class BoardGameRepository : IBoardGameRepository
         return await ParseApiResponse<Thing>(apiResponse);
     }
 
+    /// <summary>
+    /// Parses a response from the BGG API and attempts to serialize it into a C# object.
+    /// </summary>
+    /// <typeparam name="T">The type to serialize to.</typeparam>
+    /// <param name="apiResponse">BGG API response.</param>
+    /// <returns>The serialized object.</returns>
     private async Task<T> ParseApiResponse<T>(HttpResponseMessage apiResponse)
     {
         var responseContent = await apiResponse.Content.ReadAsStreamAsync();

@@ -9,8 +9,6 @@ using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// TODO - Document methods
-
 builder.Configuration
     .SetBasePath(builder.Environment.ContentRootPath)
     .AddEnvironmentVariables();

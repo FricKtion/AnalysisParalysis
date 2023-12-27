@@ -6,6 +6,7 @@ using AnalysisParalysis.Services.Models;
 
 namespace AnalysisParalysis.Services;
 
+/// <inheritdoc />
 public class SessionHostingService : ISessionHostingService
 {
     private readonly List<GamePickingSession> _activeSessions = new List<GamePickingSession>();
@@ -16,6 +17,7 @@ public class SessionHostingService : ISessionHostingService
         => (_boardGameRepo) = (boardGameRepo);
 
     // TODO - Lock this so that multiple sessions can't be created at the exact same time.
+    /// <inheritdoc />
     public async Task<GamePickingSession> StartSession(string bggUser)
     {
         var rng = new Random();
@@ -38,18 +40,12 @@ public class SessionHostingService : ISessionHostingService
         return _activeSessions.Single(x => x.SessionId == potentialId);
     }
 
-    // TODO - Do I need this?
-    public GamePickingSession JoinSession(int sessionId)
-    {
-        if(_activeSessions.Select(x => x.SessionId).Contains(sessionId))
-            return _activeSessions.Single(x => x.SessionId == sessionId);
-        else
-            throw new InvalidSessionIdException($"Could not find a session with ID: {sessionId}.");            
-    }
+    /// <inheritdoc />
+    public GamePickingSession? GetActiveSession(int sessionId)
+        => _activeSessions.SingleOrDefault(x => x.SessionIsReady && x.SessionId == sessionId);
 
-    public GamePickingSession GetActiveSession(int sessionId)
-        => _activeSessions.Single(x => x.SessionIsReady && x.SessionId == sessionId);
-
+    
+    /// <inheritdoc />
     public bool SessionIsReady(int sessionId) 
         => _activeSessions.Exists(x => x.SessionId == sessionId && x.SessionIsReady);
 }

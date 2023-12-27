@@ -25,7 +25,7 @@
         {
             @foreach(var game in _availableGames)
             {
-                <MudItem xs="6" sm="4" md="3">
+                <MudItem sm="6" md="4" lg="3">
                     <MudCard Height="100%" Class="d-flex flex-column">
                         <MudCardHeader>
                             <MudText Align="Align.Center" Typo="Typo.h6">@game.Name</MudText>
@@ -97,7 +97,7 @@
             await _dialogService.ShowAsync<ErrorDialog>("No matches!", parameters);
 
             _session.RestrictOptions(2);
-            
+
             MapAvailableGamesFromSession();
 
             StateHasChanged();
