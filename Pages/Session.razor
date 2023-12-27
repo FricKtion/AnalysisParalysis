@@ -79,7 +79,8 @@
         _session = _sessionManager.GetActiveSession(SessionId);
         _session.JoinSession(_user);
 
-        _availableGames = _session.AvailableGames;
+        _availableGames = new List<BoardGame>();
+        _availableGames.AddRange(_session.AvailableGames);
         
         StateHasChanged();
 
@@ -97,7 +98,9 @@
             await _dialogService.ShowAsync<ErrorDialog>("No matches!", parameters);
 
             _session.RestrictOptions(2);
-            _availableGames = _session.AvailableGames;
+            _availableGames.Clear();
+            _availableGames.AddRange(_session.AvailableGames);
+
             StateHasChanged();
         }
         else
