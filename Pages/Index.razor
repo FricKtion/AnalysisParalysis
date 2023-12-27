@@ -67,17 +67,25 @@
 
         if(!dialogResult.Canceled)
         {
-            int.TryParse(dialogResult.Data.ToString(), out int sessionId);
-
-            if(_sessionManager.SessionIsReady(sessionId))
+            // Only adding this because Allison asked me too...
+            if(dialogResult.Data.ToString()?.ToLower() == "butt")
             {
-                _navManager.NavigateTo($"/Session/{sessionId}");
+                await _dialogService.ShowAsync<LuciDialog>();
             }
             else
             {
-                var parameters = new DialogParameters();
-                parameters.Add("ErrorMessage", $"Could not find a session with ID '{sessionId}'");
-                await _dialogService.ShowAsync<ErrorDialog>("Unknown Session ID", parameters);
+                int.TryParse(dialogResult.Data.ToString(), out int sessionId);
+
+                if(_sessionManager.SessionIsReady(sessionId))
+                {
+                    _navManager.NavigateTo($"/Session/{sessionId}");
+                }
+                else
+                {
+                    var parameters = new DialogParameters();
+                    parameters.Add("ErrorMessage", $"Could not find a session with ID '{sessionId}'");
+                    await _dialogService.ShowAsync<ErrorDialog>("Unknown Session ID", parameters);
+                }
             }
         }
     }

@@ -10,3 +10,16 @@
         </LayoutView>
     </NotFound>
 </Router>
+
+@code 
+{
+    [Parameter]
+    public string ConnectionId { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        CurrentUser.Id = ConnectionId;
+
+        base.OnInitialized();
+    }
+}
