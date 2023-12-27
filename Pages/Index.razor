@@ -1,9 +1,84 @@
 ﻿@page "/"
+@inject IDialogService _dialogService;
+@inject NavigationManager _navManager;
+@inject ISessionHostingService _sessionManager;
 
 <PageTitle>Index</PageTitle>
 
-<h1>Hello, world!</h1>
+<MudContainer Class="d-flex align-center" Fixed="true">
+    <MudGrid Class="d-flex align-center flex-grow-1" Spacing="4" Justify="Justify.Center">
+        <MudItem Class="py-4 d-flex flex-1" xs="8" md="4">
+            <MudButton Class="d-flex align-center justify-center mud-width-full py-8"
+                @onclick="NewSessionDialog" Variant="Variant.Filled" Color="Color.Primary" 
+                StartIcon="@Icons.Material.Rounded.GroupAdd" Size="Size.Large">
+                Create Session
+            </MudButton>
+        </MudItem>
+        <MudItem Class="py-4 d-flex flex-1" xs="8" md="4">
+            <MudButton Class="d-flex align-center justify-center mud-width-full py-8"
+                @onclick="JoinSessionDialog" Variant="Variant.Filled" Color="Color.Primary" 
+                StartIcon="@Icons.Material.Rounded.Hail" Size="Size.Large">
+                Join Session
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
 
-Welcome to your new app.
+<MudOverlay Visible="_preparingSession" DarkBackground="true" Absolute="true">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+</MudOverlay>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+@code 
+{    
+    private bool _preparingSession = false;
+
+    // TODO - The whole site looks like ass, make it look better :)
+    public async Task NewSessionDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await _dialogService.ShowAsync<UserDialog>("Whose library?", options);
+        var dialogResult = await dialog.Result;
+
+        if(!dialogResult.Canceled)
+        {
+            var bggUser = dialogResult.Data.ToString();
+
+            _preparingSession = true;
+            StateHasChanged();
+
+            if(string.IsNullOrEmpty(bggUser))
+                throw new ArgumentNullException("bggUser");
+
+            var session = await _sessionManager.StartSession(bggUser);
+
+            _preparingSession = false;
+            StateHasChanged();
+
+            _navManager.NavigateTo($"/Session/{session.SessionId}");
+        }
+    }
+
+    public async Task JoinSessionDialog() 
+    {
+        // TODO - This is almost exactly the same as the user dialog (including the actual dialog file). Generalize.
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await _dialogService.ShowAsync<SessionDialog>("Which session?", options);
+        var dialogResult = await dialog.Result;
+
+        if(!dialogResult.Canceled)
+        {
+            int.TryParse(dialogResult.Data.ToString(), out int sessionId);
+
+            if(_sessionManager.SessionIsReady(sessionId))
+            {
+                _navManager.NavigateTo($"/Session/{sessionId}");
+            }
+            else
+            {
+                var parameters = new DialogParameters();
+                parameters.Add("ErrorMessage", $"Could not find a session with ID '{sessionId}'");
+                await _dialogService.ShowAsync<ErrorDialog>("Unknown Session ID", parameters);
+            }
+        }
+    }
+}

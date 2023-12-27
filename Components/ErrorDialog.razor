@@ -1,0 +1,19 @@
+﻿<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Value="ErrorMessage" Variant="Variant.Outlined"></MudTextField>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    // TODO - This popup sucks and is impossible to read.
+    
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public string ErrorMessage { get; set; } = "";
+
+    void Cancel() => MudDialog.Cancel();
+}

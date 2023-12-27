@@ -2,6 +2,7 @@
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    height: 100%;
 }
 
 h1:focus {
@@ -10,6 +11,14 @@ h1:focus {
 
 a, .btn-link {
     color: #0071c1;
+}
+
+.mud-main-content {
+    height: 100%;
+}
+
+.mud-container {
+    height: 100%;
 }
 
 .btn-primary {
@@ -59,6 +68,6 @@ a, .btn-link {
     color: white;
 }
 
-    .blazor-error-boundary::after {
-        content: "An error has occurred."
-    }
+.blazor-error-boundary::after {
+    content: "An error has occurred."
+}

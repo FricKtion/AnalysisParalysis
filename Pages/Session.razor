@@ -1,0 +1,128 @@
+@page "/Session/{sessionId:int}"
+@inject IDialogService _dialogService;
+@inject ISessionHostingService _sessionManager;
+
+<MudContainer>
+    <MudGrid Justify="Justify.SpaceBetween">
+        <MudItem xs="12"><MudSpacer></MudSpacer></MudItem>
+        @if(_session.SessionIsReady)
+        {
+            <MudItem xs="12">
+                <MudText Typo="Typo.h3">Session ID: @(_session.SessionId)</MudText>
+            </MudItem>
+            <MudItem xs="6">
+                <MudButton Variant="Variant.Filled" OnClick="@(() => FindMatches())" Color="Color.Primary" Size="Size.Large">Everyone's ready!</MudButton>
+            </MudItem>
+            <MudItem xs="6">
+                <MudButton Variant="Variant.Filled" OnClick="@((x) => ToggleExtraInfo())" Color="Color.Tertiary" Icon="@InfoIcon" Size="Size.Large">@GetExtraInfoButtonText()</MudButton>
+            </MudItem>
+        }
+    </MudGrid>
+    <MudGrid Spacing="2" Justify="Justify.SpaceEvenly">
+        @if(_session.AvailableGames != null && _session.AvailableGames.Count > 0)
+        {
+            @foreach(var game in _session.AvailableGames)
+            {
+                <MudItem xs="6" sm="4" md="3">
+                    <MudCard Height="100%" Class="d-flex flex-column">
+                        <MudCardHeader>
+                            <MudText Align="Align.Center" Typo="Typo.h6">@game.Name</MudText>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudImage Src="@game.Thumbnail?.ToString()" Alt="Cover Image" 
+                                Height="250" Width="250"
+                                ObjectFit="ObjectFit.ScaleDown" ObjectPosition="ObjectPosition.Center"
+                                Class="rounded-lg"/>
+                            @if(DisplayExtras)
+                            {
+                                <MudText>Times Played: @game.TimesPlayed</MudText>
+                                <MudText>Year Published: @game.YearPublished</MudText>
+                            }
+                        </MudCardContent>
+                        <MudCardActions Class="mt-auto">
+                            <MudButton OnClick="() => ToggleGameSelection(game)" Variant="Variant.Filled" Color="@GetGameSelectorButtonColor(game)" FullWidth="true">@GetGameSelectorButtonText(game)</MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        }
+    </MudGrid>
+</MudContainer>
+
+@code 
+{
+    // TODO - Need to setup SignalR such that all users on this page for a particular session are looking at the same thing.
+    // TODO - Need a way to "end" a session when nobody is connected to it.
+    // TODO - Center the content of the cards.
+    // TODO - Description part at the bottom of the card looks bad.
+    // TODO - Top part of the page (with the Session ID and toggle button) look bad.
+
+    [Parameter]
+    public int SessionId { get; set; } = 0;
+
+    public bool DisplayExtras { get; set; } = true;
+
+    public string InfoIcon { get; set; } = Icons.Material.Rounded.ExpandMore;
+
+    private GamePickingSession _session = new GamePickingSession();
+
+    private User _user = new User();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _user = new User() { Id = "TODO" };
+
+        _session = _sessionManager.GetActiveSession(SessionId);
+        _session.JoinSession(_user);
+
+        // TODO - Should probably say something if no games were found.
+        // TODO - Need to make this work with more users
+        
+        StateHasChanged();
+
+        await base.OnParametersSetAsync();
+    }
+
+    public async Task FindMatches()
+    {
+        var selectedGame = _session.ChooseFromSelections();
+
+        if(selectedGame == null)
+        {
+            var parameters = new DialogParameters();
+            parameters.Add("ErrorMessage", "You guys didn't select any matching games. We'll limit the selections and have you try again.");
+            await _dialogService.ShowAsync<ErrorDialog>("No matches!", parameters);
+
+            _session.RestrictOptions();
+        }
+            
+    }
+
+    public void ToggleGameSelection(BoardGame selectedGame)
+    {
+        selectedGame.IsSelected = !selectedGame.IsSelected;
+        _session.AddUserSelection(_user, selectedGame);
+        StateHasChanged();
+    }
+
+    public void ToggleExtraInfo()
+    {
+        DisplayExtras = !DisplayExtras;
+        
+        if(DisplayExtras)
+            InfoIcon = Icons.Material.Filled.ExpandLess;
+        else
+            InfoIcon = Icons.Material.Rounded.ExpandMore;
+
+        StateHasChanged();
+    }
+
+    public string GetGameSelectorButtonText(BoardGame associatedGame)
+        => associatedGame.IsSelected ? "REMOVE" : "ADD";
+
+    public string GetExtraInfoButtonText()
+        => DisplayExtras ? "Hide info" : "Show info";
+
+    public MudBlazor.Color GetGameSelectorButtonColor(BoardGame associatedGame)
+        => associatedGame.IsSelected ? Color.Error : Color.Success;
+}

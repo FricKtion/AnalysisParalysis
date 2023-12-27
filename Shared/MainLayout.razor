@@ -1,19 +1,39 @@
 ﻿@inherits LayoutComponentBase
 
-<PageTitle>AnalysisParalysis</PageTitle>
+<MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_darkMode" Theme="@_customTheme" />
+<MudDialogProvider/>
+<MudSnackbarProvider/>
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+@* TODO - This is soooooooooooooooooooo boring *@
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudText Typo="Typo.h5" Class="ml-3">Analysis Paralysis - Let's Pick a Game!</MudText>
+        <MudSpacer />
+        <MudSwitch @bind-Value="@_darkMode" Color="Color.Secondary" Class="ma-4" T="bool" Label="Dark Mode"/>
+    </MudAppBar>
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
+@code
+{
+    private MudThemeProvider _mudThemeProvider = default!;
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+    private bool _darkMode = true;
+
+    // TODO - https://mudblazor.com/customization/overview#custom-themes
+    private MudTheme _customTheme = new MudTheme()
+    {
+        
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(firstRender)
+        {
+            _darkMode = await _mudThemeProvider.GetSystemPreference();
+            StateHasChanged();
+        }
+    }
+}

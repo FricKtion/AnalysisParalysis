@@ -1,13 +1,29 @@
+using AnalysisParalysis.Data;
+using AnalysisParalysis.Data.Definitions;
+using AnalysisParalysis.Services;
+using AnalysisParalysis.Services.Definitions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using AnalysisParalysis.Data;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// TODO - Document methods
+
+builder.Configuration
+    .SetBasePath(builder.Environment.ContentRootPath)
+    .AddEnvironmentVariables();
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<WeatherForecastService>();
+builder.Services.AddMudServices();
+
+builder.Services.AddHttpClient<IBoardGameRepository>();
+
+builder.Services.AddSingleton<IAppSettingService, AppSettingService>();
+builder.Services.AddSingleton<IBoardGameRepository, BoardGameRepository>();
+builder.Services.AddSingleton<ISessionHostingService, SessionHostingService>();
 
 var app = builder.Build();
 
