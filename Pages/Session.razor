@@ -79,8 +79,7 @@
         _session = _sessionManager.GetActiveSession(SessionId);
         _session.JoinSession(_user);
 
-        _availableGames = new List<BoardGame>();
-        _availableGames.AddRange(_session.AvailableGames);
+        MapAvailableGamesFromSession();
         
         StateHasChanged();
 
@@ -98,8 +97,8 @@
             await _dialogService.ShowAsync<ErrorDialog>("No matches!", parameters);
 
             _session.RestrictOptions(2);
-            _availableGames.Clear();
-            _availableGames.AddRange(_session.AvailableGames);
+            
+            MapAvailableGamesFromSession();
 
             StateHasChanged();
         }
@@ -138,4 +137,21 @@
 
     public MudBlazor.Color GetGameSelectorButtonColor(BoardGame associatedGame)
         => associatedGame.IsSelected ? Color.Error : Color.Success;
+
+    private void MapAvailableGamesFromSession()
+    {
+        _availableGames = new List<BoardGame>();
+        _session.AvailableGames.ForEach(x => 
+        {
+            _availableGames.Add(new BoardGame
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Thumbnail = x.Thumbnail,
+                TimesPlayed = x.TimesPlayed,
+                YearPublished = x.YearPublished,
+                IsSelected = false
+            });
+        });
+    }
 }
