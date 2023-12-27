@@ -21,9 +21,9 @@
         }
     </MudGrid>
     <MudGrid Spacing="2" Justify="Justify.SpaceEvenly">
-        @if(_session.AvailableGames != null && _session.AvailableGames.Count > 0)
+        @if(_availableGames != null && _availableGames.Count > 0)
         {
-            @foreach(var game in _session.AvailableGames)
+            @foreach(var game in _availableGames)
             {
                 <MudItem xs="6" sm="4" md="3">
                     <MudCard Height="100%" Class="d-flex flex-column">
@@ -68,6 +68,8 @@
 
     private GamePickingSession _session = new GamePickingSession();
 
+    private List<BoardGame> _availableGames = new List<BoardGame>();
+
     private User _user = new User();
 
     protected override async Task OnParametersSetAsync()
@@ -76,6 +78,8 @@
 
         _session = _sessionManager.GetActiveSession(SessionId);
         _session.JoinSession(_user);
+
+        _availableGames = _session.AvailableGames;
         
         StateHasChanged();
 
@@ -93,6 +97,8 @@
             await _dialogService.ShowAsync<ErrorDialog>("No matches!", parameters);
 
             _session.RestrictOptions(2);
+            _availableGames = _session.AvailableGames;
+            StateHasChanged();
         }
         else
         {
