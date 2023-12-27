@@ -52,11 +52,25 @@ public class GamePickingSession
         AvailableGames.Clear();
 
         var rng = new Random();
+        var gamesFromEach = 2;
+
         foreach(var selectionsList in _selections.Values)
         {
-            // TODO - Take into account the selections list getting smaller
-            // TODO - Add more than one game from each user's list.
-            AvailableGames.Add(selectionsList[rng.Next(0, selectionsList.Count - 1)]);
+            if(selectionsList.Count < gamesFromEach)
+            {
+                AvailableGames.AddRange(selectionsList);
+            }
+            else
+            {
+                int i = 0;
+                while(i < gamesFromEach)
+                {
+                    var selectedIndex = rng.Next(0, selectionsList.Count - 1);
+                    AvailableGames.Add(selectionsList[selectedIndex]);
+                    selectionsList.RemoveAt(selectedIndex);
+                    i++;
+                }
+            }
         }
 
         AvailableGames.ForEach(x => x.IsSelected = false);
