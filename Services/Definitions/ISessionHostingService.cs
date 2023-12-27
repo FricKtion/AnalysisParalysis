@@ -5,9 +5,11 @@ namespace AnalysisParalysis.Services.Definitions;
 
 public interface ISessionHostingService
 {
-    GamePickingSession StartSession();
+    Task<GamePickingSession> StartSession(string bggUser);
 
     GamePickingSession JoinSession(int sessionId);
+
+    GamePickingSession GetActiveSession(int sessionId);
 
     bool SessionIsReady(int sessionId);
 }

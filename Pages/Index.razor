@@ -24,8 +24,14 @@
     </MudGrid>
 </MudContainer>
 
+<MudOverlay Visible="_preparingSession" DarkBackground="true" Absolute="true">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+</MudOverlay>
+
 @code 
 {    
+    private bool _preparingSession = false;
+
     // TODO - The whole site looks like ass, make it look better :)
     public async Task NewSessionDialog()
     {
@@ -36,7 +42,16 @@
         if(!dialogResult.Canceled)
         {
             var bggUser = dialogResult.Data.ToString();
-            _navManager.NavigateTo($"/Session/{dialogResult.Data.ToString()}");
+
+            _preparingSession = true;
+            StateHasChanged();
+
+            var session = await _sessionManager.StartSession(bggUser);
+
+            _preparingSession = false;
+            StateHasChanged();
+
+            _navManager.NavigateTo($"/Session/{session.SessionId}");
         }
     }
 

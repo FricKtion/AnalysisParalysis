@@ -1,5 +1,5 @@
-@page "/Session/{bgguser}"
-@inject IBoardGameRepository _boardGameRepo;
+@page "/Session/{sessionId:int}"
+@inject IDialogService _dialogService;
 @inject ISessionHostingService _sessionManager;
 
 <MudContainer>
@@ -7,14 +7,14 @@
         <MudItem xs="12"><MudSpacer></MudSpacer></MudItem>
         @if(_session.SessionIsReady)
         {
-            <MudItem xs="4">
-                <MudText Typo="Typo.h5">Session ID: @(_session.SessionId)</MudText>
+            <MudItem xs="12">
+                <MudText Typo="Typo.h3">Session ID: @(_session.SessionId)</MudText>
             </MudItem>
-            <MudItem xs="4">
-                <MudButton Color="Color.Primary">Ready!</MudButton>
+            <MudItem xs="6">
+                <MudButton Variant="Variant.Filled" OnClick="@(() => FindMatches())" Color="Color.Primary" Size="Size.Large">Everyone's ready!</MudButton>
             </MudItem>
-            <MudItem xs="4">
-                <MudIconButton OnClick="@((x) => ToggleExtraInfo())" Color="Color.Tertiary" Icon="@InfoIcon" Size="Size.Large"/>
+            <MudItem xs="6">
+                <MudButton Variant="Variant.Filled" OnClick="@((x) => ToggleExtraInfo())" Color="Color.Tertiary" Icon="@InfoIcon" Size="Size.Large">@GetExtraInfoButtonText()</MudButton>
             </MudItem>
         }
     </MudGrid>
@@ -49,10 +49,6 @@
     </MudGrid>
 </MudContainer>
 
-<MudOverlay Visible="_gamesLoading" DarkBackground="true" Absolute="true">
-    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
-</MudOverlay>
-
 @code 
 {
     // TODO - Need to setup SignalR such that all users on this page for a particular session are looking at the same thing.
@@ -62,7 +58,7 @@
     // TODO - Top part of the page (with the Session ID and toggle button) look bad.
 
     [Parameter]
-    public string BggUser { get; set; } = "";
+    public int SessionId { get; set; } = 0;
 
     public bool DisplayExtras { get; set; } = true;
 
@@ -70,35 +66,42 @@
 
     private GamePickingSession _session = new GamePickingSession();
 
-    private bool _gamesLoading = false;
+    private User _user = new User();
 
     protected override async Task OnParametersSetAsync()
     {
-        _gamesLoading = true;
-        StateHasChanged();
+        _user = new User() { Id = "TODO" };
 
-        // TODO - Need to make this work with more users
-        _session = _sessionManager.StartSession();
-        _session.JoinSession(new User() { Id = "TODO" });
+        _session = _sessionManager.GetActiveSession(SessionId);
+        _session.JoinSession(_user);
 
-        var userCollection = await _boardGameRepo.GetCollection(BggUser);
-        if(userCollection != null && userCollection.Items.Count() > 0)
-        {
-            _session.AvailableGames = BoardGameMapper.MapFromCollection(userCollection).ToList();
-            StateHasChanged();
-        }
-            
         // TODO - Should probably say something if no games were found.
+        // TODO - Need to make this work with more users
         
-        _gamesLoading = false;
         StateHasChanged();
 
         await base.OnParametersSetAsync();
     }
 
+    public async Task FindMatches()
+    {
+        var selectedGame = _session.ChooseFromSelections();
+
+        if(selectedGame == null)
+        {
+            var parameters = new DialogParameters();
+            parameters.Add("ErrorMessage", "You guys didn't select any matching games. We'll limit the selections and have you try again.");
+            await _dialogService.ShowAsync<ErrorDialog>("No matches!", parameters);
+
+            _session.RestrictOptions();
+        }
+            
+    }
+
     public void ToggleGameSelection(BoardGame selectedGame)
     {
         selectedGame.IsSelected = !selectedGame.IsSelected;
+        _session.AddUserSelection(_user, selectedGame);
         StateHasChanged();
     }
 
@@ -115,18 +118,11 @@
     }
 
     public string GetGameSelectorButtonText(BoardGame associatedGame)
-    {
-        if(associatedGame.IsSelected)
-            return "REMOVE";
-        else 
-            return "ADD";
-    }
+        => associatedGame.IsSelected ? "REMOVE" : "ADD";
+
+    public string GetExtraInfoButtonText()
+        => DisplayExtras ? "Hide info" : "Show info";
 
     public MudBlazor.Color GetGameSelectorButtonColor(BoardGame associatedGame)
-    {
-        if(associatedGame.IsSelected)
-            return Color.Error;
-        else
-            return Color.Success;
-    }
+        => associatedGame.IsSelected ? Color.Error : Color.Success;
 }

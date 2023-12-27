@@ -8,6 +8,8 @@ using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// TODO - Document methods
+
 builder.Configuration
     .SetBasePath(builder.Environment.ContentRootPath)
     .AddEnvironmentVariables();
@@ -19,9 +21,8 @@ builder.Services.AddMudServices();
 
 builder.Services.AddHttpClient<IBoardGameRepository>();
 
-builder.Services.AddScoped<IAppSettingService, AppSettingService>();
-builder.Services.AddScoped<IBoardGameRepository, BoardGameRepository>();
-
+builder.Services.AddSingleton<IAppSettingService, AppSettingService>();
+builder.Services.AddSingleton<IBoardGameRepository, BoardGameRepository>();
 builder.Services.AddSingleton<ISessionHostingService, SessionHostingService>();
 
 var app = builder.Build();
