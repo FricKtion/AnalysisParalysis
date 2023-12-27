@@ -34,8 +34,11 @@
 
     public async Task NewSessionDialog()
     {
-        var options = new DialogOptions { CloseOnEscapeKey = true };
-        var dialog = await _dialogService.ShowAsync<UserDialog>("Whose library?", options);
+        var parameters = new DialogParameters();
+        parameters.Add("Label", "BGG Username");
+        parameters.Add("DefaultValue", "FricKtion95");
+        var dialog = await _dialogService.ShowAsync<InputDialog>("Whose library?", parameters);
+
         var dialogResult = await dialog.Result;
 
         if(!dialogResult.Canceled)
@@ -59,9 +62,10 @@
 
     public async Task JoinSessionDialog() 
     {
-        // TODO - This is almost exactly the same as the user dialog (including the actual dialog file). Generalize.
-        var options = new DialogOptions { CloseOnEscapeKey = true };
-        var dialog = await _dialogService.ShowAsync<SessionDialog>("Which session?", options);
+        var inputDialogParameters = new DialogParameters();
+        inputDialogParameters.Add("Label", "Session ID");
+        var dialog = await _dialogService.ShowAsync<InputDialog>("Which session?", inputDialogParameters);
+        
         var dialogResult = await dialog.Result;
 
         if(!dialogResult.Canceled)
