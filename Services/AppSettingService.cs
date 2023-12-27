@@ -3,6 +3,7 @@ using System.Globalization;
 
 namespace AnalysisParalysis.Services;
 
+/// <inheritdoc />
 public class AppSettingService : IAppSettingService
 {
     private readonly IConfiguration _config;
@@ -10,6 +11,7 @@ public class AppSettingService : IAppSettingService
     public AppSettingService(IConfiguration config)
         => (_config) = (config); 
 
+    /// <inheritdoc />
     public T? Setting<T>(string key)
     {
         var envSetting = Environment.GetEnvironmentVariable(key);
@@ -27,6 +29,12 @@ public class AppSettingService : IAppSettingService
         return default(T);
     }
 
+    /// <summary>
+    /// Attempt to change type of <paramref name="value"/> from string to T.
+    /// </summary>
+    /// <typeparam name="T">The type to convert to.</typeparam>
+    /// <param name="value">The value to convert.</param>
+    /// <returns>The converted value if possible.</returns>
     private T ChangeType<T>(string value)
         => (T)Convert.ChangeType(value, typeof(T), CultureInfo.InvariantCulture);
 }

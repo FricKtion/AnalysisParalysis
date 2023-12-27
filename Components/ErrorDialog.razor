@@ -1,15 +1,13 @@
 ﻿<MudDialog>
     <DialogContent>
-        <MudTextField @bind-Value="ErrorMessage" Variant="Variant.Outlined"></MudTextField>
+        <MudText Typo="Typo.body1">@ErrorMessage</MudText>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
 
-@code {
-    // TODO - This popup sucks and is impossible to read.
-    
+@code {    
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter]

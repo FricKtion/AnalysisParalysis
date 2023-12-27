@@ -3,8 +3,16 @@ using AnalysisParalysis.Data.Models.BoardGameGeek;
 
 namespace AnalysisParalysis.Mappers;
 
+/// <summary>
+/// Maps serialized BGG API responses into app models.
+/// </summary>
 public static class BoardGameMapper
 {
+    /// <summary>
+    /// Maps the "Thing" object into a BoardGame.
+    /// </summary>
+    /// <param name="thing">Thing object serialized from BGG API.</param>
+    /// <returns>BoardGame object.</returns>
     public static BoardGame MapFromThing(Thing thing)
     {
         var boardGame = new BoardGame
@@ -25,6 +33,11 @@ public static class BoardGameMapper
         return boardGame;
     }
 
+    /// <summary>
+    /// Maps the "Collection" object into a list of BoardGame objects.
+    /// </summary>
+    /// <param name="collection">Collection object serialized from BGG API.</param>
+    /// <returns>List of BoardGame objects.</returns>
     public static IEnumerable<BoardGame> MapFromCollection(Collection collection)
     {
         var results = new List<BoardGame>();
