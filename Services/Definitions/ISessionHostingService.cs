@@ -16,7 +16,7 @@ public interface ISessionHostingService
     /// <param name="bggUser">The BGG collection to allow users to pick games from.</param>
     /// <returns>The newly created GamePickingSession object.</returns>
     /// <exception cref="NoGamesFoundException">Thrown if no games are found in the provided user's collection.</exception>
-    Task<GamePickingSession> StartSession(string bggUser);
+    Task<GamePickingSession> StartSession(string bggUser, User owner);
 
     /// <summary>
     /// Looks for an acive session with an ID matching <paramref name="sessionId"/>.

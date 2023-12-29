@@ -3,27 +3,38 @@
 @inject ISessionHostingService _sessionManager;
 
 <MudContainer>
-    <MudGrid Justify="Justify.SpaceBetween">
+    <MudGrid Justify="Justify.Center" Class="d-flex justify-center flex-grow-1 gap-4">
         <MudItem xs="12"><MudSpacer></MudSpacer></MudItem>
         @if(_session.SessionIsReady)
         {
             <MudItem xs="12">
                 <MudText Typo="Typo.h3">Session ID: @(_session.SessionId)</MudText>
             </MudItem>
-            @* TODO - Center these buttons on the page *@
-            <MudItem xs="6">
+            <MudItem xs="12">
+                <MudTextField 
+                    @bind-Value="@GameFilter"
+                    Label="Filter"
+                    Variant="Variant.Outlined"
+                    Adornment="Adornment.End"
+                    AdornmentIcon="@Icons.Material.Outlined.FilterAlt"
+                    AdornmentColor="Color.Info" 
+                    DebounceInterval="500"
+                    OnDebounceIntervalElapsed="FilterGames" />
+            </MudItem>
+            
+            <MudItem Justify="Justify.Center" Class="d-flex justify-center flex-grow-1 gap-4" xs="4">
                 <MudButton Variant="Variant.Filled" OnClick="@(() => FindMatches())" Color="Color.Primary" Size="Size.Large">Everyone's ready!</MudButton>
             </MudItem>
-            <MudItem xs="6">
+            <MudItem Justify="Justify.Center" Class="d-flex justify-center flex-grow-1 gap-4" xs="4">
                 <MudButton Variant="Variant.Filled" OnClick="@((x) => ToggleExtraInfo())" Color="Color.Tertiary" Icon="@InfoIcon" Size="Size.Large">@GetExtraInfoButtonText()</MudButton>
             </MudItem>
-            @* TODO - Add a text input to filter the games by name *@
+            <MudItem xs="12"><MudSpacer></MudSpacer></MudItem>
         }
     </MudGrid>
     <MudGrid Spacing="2" Justify="Justify.SpaceEvenly">
         @if(_availableGames != null && _availableGames.Count > 0)
         {
-            @foreach(var game in _availableGames)
+            @foreach(var game in _availableGames.Where(x => !x.IsHidden))
             {
                 <MudItem sm="6" md="4" lg="3">
                     <MudCard Height="100%" Class="d-flex flex-column">
@@ -55,9 +66,6 @@
 {
     // TODO - Need to setup SignalR such that all users on this page for a particular session are looking at the same thing.
     // TODO - Need a way to "end" a session when nobody is connected to it.
-    // TODO - Center the content of the cards.
-    // TODO - Description part at the bottom of the card looks bad.
-    // TODO - Top part of the page (with the Session ID and toggle button) look bad.
 
     [Parameter]
     public int SessionId { get; set; } = 0;
@@ -65,6 +73,8 @@
     public bool DisplayExtras { get; set; } = true;
 
     public string InfoIcon { get; set; } = Icons.Material.Rounded.ExpandMore;
+
+    public string GameFilter { get; set; } = "";
 
     private GamePickingSession _session = new GamePickingSession();
 
@@ -153,5 +163,15 @@
                 IsSelected = false
             });
         });
+    }
+
+    void FilterGames()
+    {
+        _availableGames.ForEach(x => x.IsHidden = false);
+
+        _availableGames
+            .Where(x => !x.Name.ToLower().Contains(GameFilter.ToLower()))
+            .ToList()
+            .ForEach(x => x.IsHidden = true);
     }
 }

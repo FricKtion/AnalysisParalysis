@@ -13,4 +13,6 @@ public class BoardGame
     public Uri? Thumbnail { get; set; }
 
     public bool IsSelected { get; set; } = false;
+
+    public bool IsHidden { get; set; } = false;
 }

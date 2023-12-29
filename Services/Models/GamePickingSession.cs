@@ -8,8 +8,8 @@ public class GamePickingSession
 {
     public GamePickingSession() { }
 
-    public GamePickingSession(int sessionId)
-        => (SessionId, SessionIsReady) = (sessionId, true);
+    public GamePickingSession(int sessionId, User owner)
+        => (SessionId, OwningUser, SessionIsReady) = (sessionId, owner, true);
 
     public int SessionId { get; set; } = -1;
 
@@ -17,9 +17,9 @@ public class GamePickingSession
 
     public List<BoardGame> AvailableGames { get; set; } = new List<BoardGame>();
 
-    private readonly Dictionary<User, List<BoardGame>> _selections = new Dictionary<User, List<BoardGame>>();
+    public User OwningUser { get; set; }
 
-    // TODO - Add an "owning" user so we know who created the session.
+    private readonly Dictionary<User, List<BoardGame>> _selections = new Dictionary<User, List<BoardGame>>();
 
     private readonly List<User> _connectedUsers = new List<User>();
 

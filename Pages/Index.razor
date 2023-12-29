@@ -51,7 +51,7 @@
             if(string.IsNullOrEmpty(bggUser))
                 throw new ArgumentNullException("bggUser");
 
-            var session = await _sessionManager.StartSession(bggUser);
+            var session = await _sessionManager.StartSession(bggUser, CurrentUser);
 
             _preparingSession = false;
             StateHasChanged();

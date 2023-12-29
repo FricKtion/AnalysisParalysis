@@ -16,9 +16,8 @@ public class SessionHostingService : ISessionHostingService
     public SessionHostingService(IBoardGameRepository boardGameRepo)
         => (_boardGameRepo) = (boardGameRepo);
 
-    // TODO - Lock this so that multiple sessions can't be created at the exact same time.
-    /// <inheritdoc />
-    public async Task<GamePickingSession> StartSession(string bggUser)
+   /// <inheritdoc />
+    public async Task<GamePickingSession> StartSession(string bggUser, User owner)
     {
         var rng = new Random();
         var minId = 99;
@@ -32,7 +31,7 @@ public class SessionHostingService : ISessionHostingService
         if(collection == null)
             throw new NoGamesFoundException($"No collection found for user '{bggUser}'.");
 
-        var session = new GamePickingSession(potentialId);
+        var session = new GamePickingSession(potentialId, owner);
         session.AvailableGames = BoardGameMapper.MapFromCollection(collection).ToList();
 
         _activeSessions.Add(session);
