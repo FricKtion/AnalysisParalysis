@@ -149,4 +149,15 @@ public class GamePickingSession
         if(!_connectedUsers.Select(x => x.Id).Contains(user.Id))
             _connectedUsers.Add(user);
     }
+
+    /// <summary>
+    /// Toggle the ready status of the connected user whose ID matches that of
+    /// <paramref name="user"/>. An exception will be thrown if the user isn't found.
+    /// </summary>
+    /// <param name="user">The user to toggle the ready status of.</param>
+    public void ToggleUserReadyStatus(User user)
+    {
+        _connectedUsers.Single(x => x.Id == user.Id).IsReady = 
+            !_connectedUsers.Single(x => x.Id == user.Id).IsReady;
+    }
 }
