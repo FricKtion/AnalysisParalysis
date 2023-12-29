@@ -6,15 +6,15 @@
 <PageTitle>Index</PageTitle>
 
 <MudContainer Class="d-flex align-center" Fixed="true">
-    <MudGrid Spacing="4" Justify="Justify.Center">
-        <MudItem sm="12" lg="4">
+    <MudGrid Justify="Justify.Center">
+        <MudItem xs="12" sm="12" md="4">
             <MudButton Class="d-flex align-center justify-center mud-width-full py-8"
                 @onclick="NewSessionDialog" Variant="Variant.Filled" Color="Color.Primary" 
                 StartIcon="@Icons.Material.Rounded.GroupAdd" Size="Size.Large">
                 Create Session
             </MudButton>
         </MudItem>
-        <MudItem sm="12" md="4">
+        <MudItem xs="12" sm="12" md="4">
             <MudButton Class="d-flex align-center justify-center mud-width-full py-8"
                 @onclick="JoinSessionDialog" Variant="Variant.Filled" Color="Color.Primary" 
                 StartIcon="@Icons.Material.Rounded.Hail" Size="Size.Large">

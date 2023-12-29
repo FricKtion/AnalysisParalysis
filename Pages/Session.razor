@@ -14,8 +14,9 @@
                 <MudTextField 
                     @bind-Value="@GameFilter"
                     Label="Filter"
+                    Clearable="true"
                     Variant="Variant.Outlined"
-                    Adornment="Adornment.End"
+                    Adornment="Adornment.Start"
                     AdornmentIcon="@Icons.Material.Outlined.FilterAlt"
                     AdornmentColor="Color.Info" 
                     DebounceInterval="500"
@@ -42,6 +43,8 @@
             <MudItem xs="12"><MudSpacer></MudSpacer></MudItem>
         }
     </MudGrid>
+     @* TODO - Center images in card *@
+     @* TODO - Cards are different sizes in mobile view *@
     <MudGrid Spacing="2" Justify="Justify.SpaceEvenly">
         @if(_availableGames != null && _availableGames.Count > 0)
         {
