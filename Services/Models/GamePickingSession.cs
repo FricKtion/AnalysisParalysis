@@ -19,9 +19,9 @@ public class GamePickingSession
 
     public User OwningUser { get; set; }
 
-    private readonly Dictionary<User, List<BoardGame>> _selections = new Dictionary<User, List<BoardGame>>();
+    public List<User> ConnectedUsers { get; set; } = new List<User>();
 
-    private readonly List<User> _connectedUsers = new List<User>();
+    private readonly Dictionary<User, List<BoardGame>> _selections = new Dictionary<User, List<BoardGame>>();
 
     /// <summary>
     /// Chooses a random board game from the lists of user selections, as long as 
@@ -119,7 +119,7 @@ public class GamePickingSession
     /// <exception cref="UserNotConnectedException">Thrown if <paramref name="user"/> is not connected to this session.</exception>
     public void AddUserSelections(User user, List<BoardGame> selectedGames)
     {
-        if(!_connectedUsers.Select(x => x.Id).Contains(user.Id))
+        if(!ConnectedUsers.Select(x => x.Id).Contains(user.Id))
             throw new UserNotConnectedException($"User '{user.Id}' isn't connected to this session.");
         
         foreach(var game in selectedGames)
@@ -145,8 +145,8 @@ public class GamePickingSession
     /// <param name="user">The user to add to this session.</param>
     public void JoinSession(User user)
     {
-        if(!_connectedUsers.Select(x => x.Id).Contains(user.Id))
-            _connectedUsers.Add(user);
+        if(!ConnectedUsers.Select(x => x.Id).Contains(user.Id))
+            ConnectedUsers.Add(user);
     }
 
     /// <summary>
@@ -156,7 +156,7 @@ public class GamePickingSession
     /// <param name="user">The user to toggle the ready status of.</param>
     public void ToggleUserReadyStatus(User user)
     {
-        _connectedUsers.Single(x => x.Id == user.Id).IsReady = 
-            !_connectedUsers.Single(x => x.Id == user.Id).IsReady;
+        ConnectedUsers.Single(x => x.Id == user.Id).IsReady = 
+            !ConnectedUsers.Single(x => x.Id == user.Id).IsReady;
     }
 }
