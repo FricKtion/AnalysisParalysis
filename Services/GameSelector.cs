@@ -3,7 +3,6 @@ using AnalysisParalysis.Services.Definitions;
 
 namespace AnalysisParalysis.Services;
 
-// TODO - Where to put this class?
 /// <summary>
 /// Provides logic for selecting a game given some options.
 /// </summary>

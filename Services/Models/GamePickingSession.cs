@@ -139,7 +139,6 @@ public class GamePickingSession
         }
     }
 
-    // TODO - Should this be in the SessionHostingService?
     /// <summary>
     /// Adds <paramref name="user"/> as a connected user to this session.
     /// </summary>
