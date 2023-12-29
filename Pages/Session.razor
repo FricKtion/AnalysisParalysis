@@ -24,6 +24,14 @@
             </MudItem>
             
             @* TODO - Show how many users are connected and if they're ready *@
+            foreach(var user in _session.ConnectedUsers)
+            {
+                <MudToggleIconButton
+                    @bind-Toggled="@user.IsReady"
+                    Disabled="true"
+                    ToggledIcon="@Icons.Material.Outlined.CheckCircle" ToggledColor="@Color.Success"
+                    Icon="@Icons.Material.Outlined.Circle" Color="Color.Error" />
+            }
 
             if(_session.OwningUser.Id == CurrentUser.Id)
             {
