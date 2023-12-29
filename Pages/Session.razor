@@ -22,9 +22,20 @@
                     OnDebounceIntervalElapsed="FilterGames" />
             </MudItem>
             
-            <MudItem Justify="Justify.Center" Class="d-flex justify-center flex-grow-1 gap-4" xs="4">
-                <MudButton Variant="Variant.Filled" OnClick="@(() => FindMatches())" Color="Color.Primary" Size="Size.Large">Everyone's ready!</MudButton>
-            </MudItem>
+            @* TODO - Show how many users are connected and if they're ready *@
+
+            if(_session.OwningUser.Id == CurrentUser.Id)
+            {
+                <MudItem Justify="Justify.Center" Class="d-flex justify-center flex-grow-1 gap-4" xs="4">
+                    <MudButton Variant="Variant.Filled" OnClick="@(() => FindMatches())" Color="Color.Primary" Size="Size.Large">Everyone's ready!</MudButton>
+                </MudItem>
+            }
+            else 
+            {
+                <MudItem Justify="Justify.Center" Class="d-flex justify-center flex-grow-1 gap-4" xs="4">
+                    <MudButton Variant="Variant.Filled" OnClick="@(() => ReadyUp())" Color="Color.Primary" Size="Size.Large">I'm ready!</MudButton>
+                </MudItem>
+            }
             <MudItem Justify="Justify.Center" Class="d-flex justify-center flex-grow-1 gap-4" xs="4">
                 <MudButton Variant="Variant.Filled" OnClick="@((x) => ToggleExtraInfo())" Color="Color.Tertiary" Icon="@InfoIcon" Size="Size.Large">@GetExtraInfoButtonText()</MudButton>
             </MudItem>
@@ -36,7 +47,7 @@
         {
             @foreach(var game in _availableGames.Where(x => !x.IsHidden))
             {
-                <MudItem sm="6" md="4" lg="3">
+                <MudItem sm="12" md="4" lg="3">
                     <MudCard Height="100%" Class="d-flex flex-column">
                         <MudCardHeader>
                             <MudText Align="Align.Center" Typo="Typo.h6">@game.Name</MudText>
@@ -87,7 +98,7 @@
         _user = CurrentUser;
 
         _session = _sessionManager.GetActiveSession(SessionId);
-        _session.JoinSession(_user);
+        _session?.JoinSession(_user);
 
         MapAvailableGamesFromSession();
         
@@ -98,27 +109,39 @@
 
     public async Task FindMatches()
     {
-        var selectedGame = _session.ChooseFromSelections();
-
-        if(selectedGame == null)
+        try 
         {
-            var parameters = new DialogParameters();
-            parameters.Add("ErrorMessage", "You guys didn't select any matching games. We'll limit the selections and have you try again.");
-            await _dialogService.ShowAsync<ErrorDialog>("No matches!", parameters);
+            var selectedGame = _session.ChooseFromSelections();
 
-            _session.RestrictOptions(2);
+            if(selectedGame == null)
+            {
+                var parameters = new DialogParameters();
+                parameters.Add("ErrorMessage", "You guys didn't select any matching games. We'll limit the selections and have you try again.");
+                await _dialogService.ShowAsync<ErrorDialog>("No matches!", parameters);
 
-            MapAvailableGamesFromSession();
+                _session.RestrictOptions(2);
 
-            StateHasChanged();
+                MapAvailableGamesFromSession();
+
+                StateHasChanged();
+            }
+            else
+            {
+                var parameters = new DialogParameters();
+                parameters.Add("ErrorMessage", $"We picked {selectedGame.Name}, good luck!");
+                await _dialogService.ShowAsync<ErrorDialog>("Got one!", parameters);
+            }
         }
-        else
+        catch(NoGamesFoundException)
         {
             var parameters = new DialogParameters();
-            parameters.Add("ErrorMessage", $"We picked {selectedGame.Name}, good luck!");
-            await _dialogService.ShowAsync<ErrorDialog>("Got one!", parameters);
+            parameters.Add("ErrorMessage", $"Nobody has selected any games. Pick some then try again.");
+            await _dialogService.ShowAsync<ErrorDialog>("No games selected.", parameters);
         }
     }
+
+    public void ReadyUp()
+        => _session.ToggleUserReadyStatus(CurrentUser);
 
     public void ToggleGameSelection(BoardGame selectedGame)
     {
