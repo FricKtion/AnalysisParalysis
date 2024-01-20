@@ -62,8 +62,7 @@
             <MudItem xs="12"><MudSpacer></MudSpacer></MudItem>
         }
     </MudGrid>
-     @* TODO - Center images in card *@
-     @* TODO - Cards are different sizes in mobile view *@
+
     <MudGrid Spacing="2" Justify="Justify.SpaceEvenly">
         @if(_availableGames != null && _availableGames.Count > 0)
         {
@@ -115,7 +114,6 @@
     private HubConnection? _hubConnection;
 
     // TODO - Get some of the logic out of here so that only page specific logic lives here. Everything else should probably live within the hub or the session model.
-
     protected override void OnInitialized()
         => _navigation.LocationChanged += HandleLocationChanged;
     protected override async Task OnParametersSetAsync()
