@@ -116,12 +116,18 @@
     private User _user = new User();
 
     private HubConnection? _hubConnection;
+
+    // TODO - Get some of the logic out of here so that only page specific logic lives here. Everything else should probably live within the hub or the session model.
+
+    protected override void OnInitialized()
+        => _navigation.LocationChanged += HandleLocationChanged;
     protected override async Task OnParametersSetAsync()
     {
         await SetupHub();
 
         _user = CurrentUser;
 
+        // TODO - Refreshing the page causes some issues here. Could probably be relieved if I kick users out when they close the page or refresh.
         _session = _sessionManager.GetActiveSession(SessionId) ?? throw new Exception($"Unable to get a session with ID {SessionId}");
         _session?.JoinSession(_user);
         await _hubConnection!.SendAsync("JoinSession", _session);
@@ -197,6 +203,9 @@
     public async Task UserJoined()
         => await InvokeAsync(StateHasChanged);
 
+    public async Task UserLeft()
+        => await InvokeAsync(StateHasChanged);
+
     public async Task ReadyStatusChanged()
         => await InvokeAsync(StateHasChanged);
 
@@ -251,6 +260,10 @@
             await UserJoined();
         });
 
+        _hubConnection.On("UserLeft", async () => {
+            await UserLeft();
+        });
+
         _hubConnection.On("UserReady", async () => {
             await ReadyStatusChanged();
         });
@@ -264,6 +277,12 @@
         });
 
         await _hubConnection.StartAsync();
+    }
+
+    private async void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        _session.LeaveSession(_user);
+        await _hubConnection!.SendAsync("LeaveSession", _session);
     }
 
     void FilterGames()
