@@ -116,21 +116,27 @@
     // TODO - Get some of the logic out of here so that only page specific logic lives here. Everything else should probably live within the hub or the session model.
     protected override void OnInitialized()
         => _navigation.LocationChanged += HandleLocationChanged;
-    protected override async Task OnParametersSetAsync()
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await SetupHub();
+        if(firstRender)
+        {
+            await SetupHub();
 
-        _user = CurrentUser;
+            _user = CurrentUser;
 
-        _session = _sessionManager.GetActiveSession(SessionId) ?? throw new Exception($"Unable to get a session with ID {SessionId}");
-        _session?.JoinSession(_user);
-        await _hubConnection!.SendAsync("JoinSession", _session);
+            _session = _sessionManager.GetActiveSession(SessionId) ?? throw new Exception($"Unable to get a session with ID {SessionId}");
+            _session?.JoinSession(_user);
+            await _hubConnection!.SendAsync("JoinSession", _session);
 
-        MapAvailableGamesFromSession();
-        
-        StateHasChanged();
+            MapAvailableGamesFromSession();
+            
+            StateHasChanged();
 
-        await base.OnParametersSetAsync();
+            await base.OnParametersSetAsync();
+        }
+
+        base.OnAfterRender(firstRender);
     }
 
     public async Task FindMatches()
