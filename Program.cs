@@ -1,10 +1,12 @@
 using AnalysisParalysis.Data;
 using AnalysisParalysis.Data.Definitions;
+using AnalysisParalysis.Hubs;
 using AnalysisParalysis.Services;
 using AnalysisParalysis.Services.Definitions;
 using AnalysisParalysis.Services.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.ResponseCompression;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +19,7 @@ builder.Configuration
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
+builder.Services.AddSignalR();
 
 builder.Services.AddHttpClient<IBoardGameRepository>();
 
@@ -26,7 +29,16 @@ builder.Services.AddSingleton<IAppSettingService, AppSettingService>();
 builder.Services.AddSingleton<IBoardGameRepository, BoardGameRepository>();
 builder.Services.AddSingleton<ISessionHostingService, SessionHostingService>();
 
+// Recommended by Microsoft when implementing SignalR
+builder.Services.AddResponseCompression(opts => 
+{
+    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" });
+});
+
 var app = builder.Build();
+
+// Recommended by Microsoft when implementing SignalR
+app.UseResponseCompression();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -44,5 +56,6 @@ app.UseRouting();
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
+app.MapHub<SessionHub>("/sessionHub");
 
 app.Run();

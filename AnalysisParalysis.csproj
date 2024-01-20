@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="6.11.2" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.1" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Data\Models\BoardGameGeek\" />

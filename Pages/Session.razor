@@ -1,6 +1,8 @@
 @page "/Session/{sessionId:int}"
+@using Microsoft.AspNetCore.SignalR.Client
 @inject IDialogService _dialogService;
 @inject ISessionHostingService _sessionManager;
+@inject NavigationManager _navigation;
 
 <MudContainer>
     <MudGrid Justify="Justify.Center" Class="d-flex justify-center flex-grow-1 gap-4">
@@ -10,6 +12,25 @@
             <MudItem xs="12">
                 <MudText Typo="Typo.h3">Session ID: @(_session.SessionId)</MudText>
             </MudItem>
+
+            <MudItem xs="12">
+                <MudContainer Class="d-flex align-center d-flex flex-row">
+                    <MudText Typo="Typo.h5">Players: </MudText>
+                    @foreach(var user in _session.ConnectedUsers)
+                    {
+                        if(user.Id == _session.OwningUser.Id)
+                            continue;
+
+                        <MudToggleIconButton
+                            @bind-Toggled="@user.IsReady"
+                            Disabled="true"
+                            ToggledIcon="@Icons.Material.Outlined.CheckCircle" ToggledColor="@Color.Success"
+                            Style="margin-top: 4px;"
+                            Icon="@Icons.Material.Outlined.Circle" Color="Color.Error" />
+                    }
+                </MudContainer>
+            </MudItem>
+
             <MudItem xs="12">
                 <MudTextField 
                     @bind-Value="@GameFilter"
@@ -22,16 +43,6 @@
                     DebounceInterval="500"
                     OnDebounceIntervalElapsed="FilterGames" />
             </MudItem>
-            
-            @* TODO - Show how many users are connected and if they're ready *@
-            foreach(var user in _session.ConnectedUsers)
-            {
-                <MudToggleIconButton
-                    @bind-Toggled="@user.IsReady"
-                    Disabled="true"
-                    ToggledIcon="@Icons.Material.Outlined.CheckCircle" ToggledColor="@Color.Success"
-                    Icon="@Icons.Material.Outlined.Circle" Color="Color.Error" />
-            }
 
             if(_session.OwningUser.Id == CurrentUser.Id)
             {
@@ -42,7 +53,7 @@
             else 
             {
                 <MudItem Justify="Justify.Center" Class="d-flex justify-center flex-grow-1 gap-4" xs="4">
-                    <MudButton Variant="Variant.Filled" OnClick="@(() => ReadyUp())" Color="Color.Primary" Size="Size.Large">I'm ready!</MudButton>
+                    <MudButton Variant="Variant.Filled" OnClick="@(() => ReadyUp())" Color="Color.Primary" Size="Size.Large">@GetReadyButtonText()</MudButton>
                 </MudItem>
             }
             <MudItem Justify="Justify.Center" Class="d-flex justify-center flex-grow-1 gap-4" xs="4">
@@ -104,12 +115,16 @@
 
     private User _user = new User();
 
+    private HubConnection? _hubConnection;
     protected override async Task OnParametersSetAsync()
     {
+        await SetupHub();
+
         _user = CurrentUser;
 
-        _session = _sessionManager.GetActiveSession(SessionId);
+        _session = _sessionManager.GetActiveSession(SessionId) ?? throw new Exception($"Unable to get a session with ID {SessionId}");
         _session?.JoinSession(_user);
+        await _hubConnection!.SendAsync("JoinSession", _session);
 
         MapAvailableGamesFromSession();
         
@@ -152,7 +167,10 @@
     }
 
     public void ReadyUp()
-        => _session.ToggleUserReadyStatus(CurrentUser);
+    {
+        _session.ToggleUserReadyStatus(CurrentUser);
+        _hubConnection!.SendAsync("UserReady", _session);
+    }
 
     public void ToggleGameSelection(BoardGame selectedGame)
     {
@@ -179,8 +197,17 @@
     public string GetExtraInfoButtonText()
         => DisplayExtras ? "Hide info" : "Show info";
 
+    public string GetReadyButtonText()
+        => _user.IsReady ? "Not ready!" : "I'm ready!";
+
     public MudBlazor.Color GetGameSelectorButtonColor(BoardGame associatedGame)
         => associatedGame.IsSelected ? Color.Error : Color.Success;
+
+    public async Task UserJoined()
+        => await InvokeAsync(StateHasChanged);
+
+    public async Task ReadyStatusChanged()
+        => await InvokeAsync(StateHasChanged);
 
     private void MapAvailableGamesFromSession()
     {
@@ -197,6 +224,23 @@
                 IsSelected = false
             });
         });
+    }
+
+    private async Task SetupHub()
+    {
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(_navigation.ToAbsoluteUri("/sessionHub"))
+            .Build();
+
+        _hubConnection.On("UserJoined", async () => {
+            await UserJoined();
+        });
+
+        _hubConnection.On("UserReady", async() => {
+            await ReadyStatusChanged();
+        });
+
+        await _hubConnection.StartAsync();
     }
 
     void FilterGames()

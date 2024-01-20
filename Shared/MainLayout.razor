@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@inject ProtectedLocalStorage browserCache
 
 <MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_darkMode" Theme="@_customTheme" />
 <MudDialogProvider/>
@@ -9,7 +10,7 @@
     <MudAppBar Elevation="1">
         <MudText Typo="Typo.h5" Class="ml-3">Analysis Paralysis</MudText>
         <MudSpacer />
-        <MudSwitch @bind-Value="@_darkMode" Color="Color.Secondary" Class="ma-4" T="bool" Label="Dark Mode"/>
+        <MudSwitch Value="@_darkMode" ValueChanged="@DarkModeToggled" Color="Color.Secondary" Class="ma-4" T="bool" Label="Dark Mode"/>
     </MudAppBar>
     <MudMainContent>
         @Body
@@ -32,8 +33,25 @@
     {
         if(firstRender)
         {
-            _darkMode = await _mudThemeProvider.GetSystemPreference();
+            var cacheResult = await browserCache.GetAsync<bool>("darkMode");
+
+            if(cacheResult.Success)
+            {
+                _darkMode = cacheResult.Value;
+            }
+            else
+            {
+                _darkMode = await _mudThemeProvider.GetSystemPreference();
+                await browserCache.SetAsync("darkMode", _darkMode);
+            }
+                
             StateHasChanged();
         }
+    }
+
+    async void DarkModeToggled()
+    {
+        _darkMode = !_darkMode;
+        await browserCache.SetAsync("darkMode", _darkMode);
     }
 }
