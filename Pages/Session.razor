@@ -1,6 +1,8 @@
 @page "/Session/{sessionId:int}"
+@using Microsoft.AspNetCore.SignalR.Client
 @inject IDialogService _dialogService;
 @inject ISessionHostingService _sessionManager;
+@inject NavigationManager _navigation;
 
 <MudContainer>
     <MudGrid Justify="Justify.Center" Class="d-flex justify-center flex-grow-1 gap-4">
@@ -113,12 +115,16 @@
 
     private User _user = new User();
 
+    private HubConnection? _hubConnection;
     protected override async Task OnParametersSetAsync()
     {
+        await SetupHub();
+
         _user = CurrentUser;
 
         _session = _sessionManager.GetActiveSession(SessionId) ?? throw new Exception($"Unable to get a session with ID {SessionId}");
         _session?.JoinSession(_user);
+        await _hubConnection!.SendAsync("JoinSession", _session);
 
         MapAvailableGamesFromSession();
         
@@ -161,7 +167,10 @@
     }
 
     public void ReadyUp()
-        => _session.ToggleUserReadyStatus(CurrentUser);
+    {
+        _session.ToggleUserReadyStatus(CurrentUser);
+        _hubConnection!.SendAsync("UserReady", _session);
+    }
 
     public void ToggleGameSelection(BoardGame selectedGame)
     {
@@ -194,6 +203,12 @@
     public MudBlazor.Color GetGameSelectorButtonColor(BoardGame associatedGame)
         => associatedGame.IsSelected ? Color.Error : Color.Success;
 
+    public async Task UserJoined()
+        => await InvokeAsync(StateHasChanged);
+
+    public async Task ReadyStatusChanged()
+        => await InvokeAsync(StateHasChanged);
+
     private void MapAvailableGamesFromSession()
     {
         _availableGames = new List<BoardGame>();
@@ -209,6 +224,23 @@
                 IsSelected = false
             });
         });
+    }
+
+    private async Task SetupHub()
+    {
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(_navigation.ToAbsoluteUri("/sessionHub"))
+            .Build();
+
+        _hubConnection.On("UserJoined", async () => {
+            await UserJoined();
+        });
+
+        _hubConnection.On("UserReady", async() => {
+            await ReadyStatusChanged();
+        });
+
+        await _hubConnection.StartAsync();
     }
 
     void FilterGames()
