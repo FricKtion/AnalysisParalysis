@@ -97,9 +97,6 @@
 
 @code 
 {
-    // TODO - Need to setup SignalR such that all users on this page for a particular session are looking at the same thing.
-    // TODO - Need a way to "end" a session when nobody is connected to it.
-
     [Parameter]
     public int SessionId { get; set; } = 0;
 
@@ -127,7 +124,6 @@
 
         _user = CurrentUser;
 
-        // TODO - Refreshing the page causes some issues here. Could probably be relieved if I kick users out when they close the page or refresh.
         _session = _sessionManager.GetActiveSession(SessionId) ?? throw new Exception($"Unable to get a session with ID {SessionId}");
         _session?.JoinSession(_user);
         await _hubConnection!.SendAsync("JoinSession", _session);
@@ -229,8 +225,8 @@
     private async Task InternalGameSelected(BoardGame selectedGame)
     {
         var parameters = new DialogParameters();
-        parameters.Add("ErrorMessage", $"We picked {selectedGame.Name}, good luck!");
-        await _dialogService.ShowAsync<ErrorDialog>("Got one!", parameters); // TODO - Replace with actual dialog, not error dialog
+        parameters.Add("SelectedGame", selectedGame);
+        await _dialogService.ShowAsync<BoardGameDialog>("Got one!", parameters);
     }
 
     private void MapAvailableGamesFromSession()
