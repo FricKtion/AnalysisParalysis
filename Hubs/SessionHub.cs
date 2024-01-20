@@ -1,3 +1,4 @@
+using AnalysisParalysis.Data.Models;
 using AnalysisParalysis.Services.Models;
 using Microsoft.AspNetCore.SignalR;
 
@@ -20,4 +21,10 @@ public class SessionHub : Hub
 
     public async Task UserReady(GamePickingSession usersSession)
         => await Clients.Group(usersSession.SessionId.ToString()).SendAsync("UserReady");
+
+    public async Task NoMatches(GamePickingSession session)
+        => await Clients.Group(session.SessionId.ToString()).SendAsync("NoMatches");
+
+    public async Task GameSelected(GamePickingSession session, BoardGame selectedGame)
+        => await Clients.Group(session.SessionId.ToString()).SendAsync("GameSelected", selectedGame);
 }
