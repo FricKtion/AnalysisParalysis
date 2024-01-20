@@ -1,0 +1,24 @@
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.body1">@GetMessage()</MudText>
+        <MudImage Src="@SelectedGame.Thumbnail?.ToString()" Alt="Cover Image" 
+            Height="250" Width="250"
+            ObjectFit="ObjectFit.ScaleDown" ObjectPosition="ObjectPosition.Center"
+            Class="rounded-lg"/>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {    
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public BoardGame SelectedGame { get; set; } = new BoardGame();
+
+    private string GetMessage()
+        => $"We picked {SelectedGame.Name}, good luck!";
+
+    void Cancel() => MudDialog.Cancel();
+}

@@ -62,8 +62,7 @@
             <MudItem xs="12"><MudSpacer></MudSpacer></MudItem>
         }
     </MudGrid>
-     @* TODO - Center images in card *@
-     @* TODO - Cards are different sizes in mobile view *@
+
     <MudGrid Spacing="2" Justify="Justify.SpaceEvenly">
         @if(_availableGames != null && _availableGames.Count > 0)
         {
@@ -97,9 +96,6 @@
 
 @code 
 {
-    // TODO - Need to setup SignalR such that all users on this page for a particular session are looking at the same thing.
-    // TODO - Need a way to "end" a session when nobody is connected to it.
-
     [Parameter]
     public int SessionId { get; set; } = 0;
 
@@ -116,6 +112,10 @@
     private User _user = new User();
 
     private HubConnection? _hubConnection;
+
+    // TODO - Get some of the logic out of here so that only page specific logic lives here. Everything else should probably live within the hub or the session model.
+    protected override void OnInitialized()
+        => _navigation.LocationChanged += HandleLocationChanged;
     protected override async Task OnParametersSetAsync()
     {
         await SetupHub();
@@ -197,6 +197,9 @@
     public async Task UserJoined()
         => await InvokeAsync(StateHasChanged);
 
+    public async Task UserLeft()
+        => await InvokeAsync(StateHasChanged);
+
     public async Task ReadyStatusChanged()
         => await InvokeAsync(StateHasChanged);
 
@@ -220,8 +223,8 @@
     private async Task InternalGameSelected(BoardGame selectedGame)
     {
         var parameters = new DialogParameters();
-        parameters.Add("ErrorMessage", $"We picked {selectedGame.Name}, good luck!");
-        await _dialogService.ShowAsync<ErrorDialog>("Got one!", parameters); // TODO - Replace with actual dialog, not error dialog
+        parameters.Add("SelectedGame", selectedGame);
+        await _dialogService.ShowAsync<BoardGameDialog>("Got one!", parameters);
     }
 
     private void MapAvailableGamesFromSession()
@@ -251,6 +254,10 @@
             await UserJoined();
         });
 
+        _hubConnection.On("UserLeft", async () => {
+            await UserLeft();
+        });
+
         _hubConnection.On("UserReady", async () => {
             await ReadyStatusChanged();
         });
@@ -264,6 +271,12 @@
         });
 
         await _hubConnection.StartAsync();
+    }
+
+    private async void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        _session.LeaveSession(_user);
+        await _hubConnection!.SendAsync("LeaveSession", _session);
     }
 
     void FilterGames()
