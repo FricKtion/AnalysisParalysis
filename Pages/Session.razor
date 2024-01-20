@@ -10,6 +10,25 @@
             <MudItem xs="12">
                 <MudText Typo="Typo.h3">Session ID: @(_session.SessionId)</MudText>
             </MudItem>
+
+            <MudItem xs="12">
+                <MudContainer Class="d-flex align-center d-flex flex-row">
+                    <MudText Typo="Typo.h5">Players: </MudText>
+                    @foreach(var user in _session.ConnectedUsers)
+                    {
+                        if(user.Id == _session.OwningUser.Id)
+                            continue;
+
+                        <MudToggleIconButton
+                            @bind-Toggled="@user.IsReady"
+                            Disabled="true"
+                            ToggledIcon="@Icons.Material.Outlined.CheckCircle" ToggledColor="@Color.Success"
+                            Style="margin-top: 4px;"
+                            Icon="@Icons.Material.Outlined.Circle" Color="Color.Error" />
+                    }
+                </MudContainer>
+            </MudItem>
+
             <MudItem xs="12">
                 <MudTextField 
                     @bind-Value="@GameFilter"
@@ -22,16 +41,6 @@
                     DebounceInterval="500"
                     OnDebounceIntervalElapsed="FilterGames" />
             </MudItem>
-            
-            @* TODO - Show how many users are connected and if they're ready *@
-            foreach(var user in _session.ConnectedUsers)
-            {
-                <MudToggleIconButton
-                    @bind-Toggled="@user.IsReady"
-                    Disabled="true"
-                    ToggledIcon="@Icons.Material.Outlined.CheckCircle" ToggledColor="@Color.Success"
-                    Icon="@Icons.Material.Outlined.Circle" Color="Color.Error" />
-            }
 
             if(_session.OwningUser.Id == CurrentUser.Id)
             {
@@ -42,7 +51,7 @@
             else 
             {
                 <MudItem Justify="Justify.Center" Class="d-flex justify-center flex-grow-1 gap-4" xs="4">
-                    <MudButton Variant="Variant.Filled" OnClick="@(() => ReadyUp())" Color="Color.Primary" Size="Size.Large">I'm ready!</MudButton>
+                    <MudButton Variant="Variant.Filled" OnClick="@(() => ReadyUp())" Color="Color.Primary" Size="Size.Large">@GetReadyButtonText()</MudButton>
                 </MudItem>
             }
             <MudItem Justify="Justify.Center" Class="d-flex justify-center flex-grow-1 gap-4" xs="4">
@@ -108,7 +117,7 @@
     {
         _user = CurrentUser;
 
-        _session = _sessionManager.GetActiveSession(SessionId);
+        _session = _sessionManager.GetActiveSession(SessionId) ?? throw new Exception($"Unable to get a session with ID {SessionId}");
         _session?.JoinSession(_user);
 
         MapAvailableGamesFromSession();
@@ -178,6 +187,9 @@
 
     public string GetExtraInfoButtonText()
         => DisplayExtras ? "Hide info" : "Show info";
+
+    public string GetReadyButtonText()
+        => _user.IsReady ? "Not ready!" : "I'm ready!";
 
     public MudBlazor.Color GetGameSelectorButtonColor(BoardGame associatedGame)
         => associatedGame.IsSelected ? Color.Error : Color.Success;
