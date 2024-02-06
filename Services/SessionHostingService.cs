@@ -49,4 +49,24 @@ public class SessionHostingService : ISessionHostingService
     /// <inheritdoc />
     public bool SessionIsReady(int sessionId) 
         => _activeSessions.Exists(x => x.SessionId == sessionId && x.SessionIsReady);
+
+    /// <inheritdoc />
+    public void AddUserToSession(GamePickingSession session, User user)
+    {
+        if(!_activeSessions.Select(x => x.SessionId).Contains(session.SessionId))
+            return;
+
+        if(!_activeSessions.Single(x => x.SessionId == session.SessionId).ConnectedUsers.Select(x => x.Id).Contains(user.Id))
+            _activeSessions.Single(x => x.SessionId == session.SessionId).ConnectedUsers.Add(user);
+    }
+
+    /// <inheritdoc />
+    public void RemoveUserFromSession(GamePickingSession session, User user)
+    {
+        if(!_activeSessions.Select(x => x.SessionId).Contains(session.SessionId))
+            return;
+
+        if(_activeSessions.Single(x => x.SessionId == session.SessionId).ConnectedUsers.Select(x => x.Id).Contains(user.Id))
+            _activeSessions.Single(x => x.SessionId == session.SessionId).ConnectedUsers.RemoveAll(x => x.Id == user.Id);
+    }
 }

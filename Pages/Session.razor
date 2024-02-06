@@ -3,6 +3,11 @@
 @inject IDialogService _dialogService;
 @inject ISessionHostingService _sessionManager;
 @inject NavigationManager _navigation;
+@implements IDisposable
+
+<MudOverlay Visible="_preparingSession" DarkBackground="true" Absolute="true">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+</MudOverlay>
 
 <MudContainer>
     <MudGrid Justify="Justify.Center" Class="d-flex justify-center flex-grow-1 gap-4">
@@ -99,6 +104,9 @@
     [Parameter]
     public int SessionId { get; set; } = 0;
 
+    [Parameter]
+    public string BggUser { get; set; } = "";
+
     public bool DisplayExtras { get; set; } = true;
 
     public string InfoIcon { get; set; } = Icons.Material.Rounded.ExpandMore;
@@ -109,34 +117,32 @@
 
     private List<BoardGame> _availableGames = new List<BoardGame>();
 
-    private User _user = new User();
-
     private HubConnection? _hubConnection;
 
-    // TODO - Get some of the logic out of here so that only page specific logic lives here. Everything else should probably live within the hub or the session model.
-    protected override void OnInitialized()
-        => _navigation.LocationChanged += HandleLocationChanged;
+    private bool _preparingSession = false;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnParametersSetAsync()
     {
-        if(firstRender)
+        _preparingSession = true;
+        StateHasChanged();
+
+        await SetupHub();
+
+        if(SessionId == 0)
         {
-            await SetupHub();
-
-            _user = CurrentUser;
-
-            _session = _sessionManager.GetActiveSession(SessionId) ?? throw new Exception($"Unable to get a session with ID {SessionId}");
-            _session?.JoinSession(_user);
-            await _hubConnection!.SendAsync("JoinSession", _session);
-
+            _session = await _sessionManager.StartSession(BggUser, CurrentUser);
+            await _hubConnection!.SendAsync("JoinSession", _session, CurrentUser);
             MapAvailableGamesFromSession();
-            
-            StateHasChanged();
-
-            await base.OnParametersSetAsync();
         }
+        else
+        {
+            await _hubConnection!.SendAsync("JoinSession", _session, CurrentUser);
+        }
+        
+        _preparingSession = false;
+        StateHasChanged();
 
-        base.OnAfterRender(firstRender);
+        await base.OnParametersSetAsync();
     }
 
     public async Task FindMatches()
@@ -172,7 +178,7 @@
     public void ToggleGameSelection(BoardGame selectedGame)
     {
         selectedGame.IsSelected = !selectedGame.IsSelected;
-        _session.AddUserSelection(_user, selectedGame);
+        _session.AddUserSelection(CurrentUser, selectedGame);
         StateHasChanged();
     }
 
@@ -195,13 +201,14 @@
         => DisplayExtras ? "Hide info" : "Show info";
 
     public string GetReadyButtonText()
-        => _user.IsReady ? "Not ready!" : "I'm ready!";
+        => CurrentUser.IsReady ? "Not ready!" : "I'm ready!";
 
     public MudBlazor.Color GetGameSelectorButtonColor(BoardGame associatedGame)
         => associatedGame.IsSelected ? Color.Error : Color.Success;
 
-    public async Task UserJoined()
+    public async Task UserJoined(GamePickingSession session)
         => await InvokeAsync(StateHasChanged);
+        
 
     public async Task UserLeft()
         => await InvokeAsync(StateHasChanged);
@@ -256,8 +263,8 @@
             .WithUrl(_navigation.ToAbsoluteUri("/sessionHub"))
             .Build();
 
-        _hubConnection.On("UserJoined", async () => {
-            await UserJoined();
+        _hubConnection.On<GamePickingSession>("UserJoined", async (session) => {
+            await UserJoined(session);
         });
 
         _hubConnection.On("UserLeft", async () => {
@@ -279,9 +286,9 @@
         await _hubConnection.StartAsync();
     }
 
-    private async void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    public async void Dispose()
     {
-        _session.LeaveSession(_user);
+        _session.LeaveSession(CurrentUser);
         await _hubConnection!.SendAsync("LeaveSession", _session);
     }
 
