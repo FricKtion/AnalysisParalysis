@@ -11,8 +11,15 @@
             "hosted": true,
             "program": "${workspaceFolder}/bin/Debug/net6.0/AnalysisParalysis.dll",
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Docker .NET Launch",
+            "type": "docker",
+            "request": "launch",
+            "preLaunchTask": "docker-run: debug",
+            "netCore": {
+                "appProject": "${workspaceFolder}/AnalysisParalysis.csproj"
+            }
         }
-        
-
     ]
 }
