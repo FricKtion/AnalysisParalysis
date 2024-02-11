@@ -1,8 +1,14 @@
 @page "/Session/{sessionId:int}"
 @using Microsoft.AspNetCore.SignalR.Client
+@using AnalysisParalysis.Services.Enums;
 @inject IDialogService _dialogService;
 @inject ISessionHostingService _sessionManager;
 @inject NavigationManager _navigation;
+@implements IDisposable
+
+<MudOverlay Visible="_preparingSession" DarkBackground="true" Absolute="true">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+</MudOverlay>
 
 <MudContainer>
     <MudGrid Justify="Justify.Center" Class="d-flex justify-center flex-grow-1 gap-4">
@@ -99,6 +105,10 @@
     [Parameter]
     public int SessionId { get; set; } = 0;
 
+    [Parameter]
+    [SupplyParameterFromQuery(Name="bgguser")]
+    public string BggUser { get; set; } = "";
+
     public bool DisplayExtras { get; set; } = true;
 
     public string InfoIcon { get; set; } = Icons.Material.Rounded.ExpandMore;
@@ -109,34 +119,45 @@
 
     private List<BoardGame> _availableGames = new List<BoardGame>();
 
-    private User _user = new User();
-
     private HubConnection? _hubConnection;
 
-    // TODO - Get some of the logic out of here so that only page specific logic lives here. Everything else should probably live within the hub or the session model.
-    protected override void OnInitialized()
-        => _navigation.LocationChanged += HandleLocationChanged;
+    private bool _preparingSession = false;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnParametersSetAsync()
     {
-        if(firstRender)
+        _preparingSession = true;
+        StateHasChanged();
+
+        await SetupHub();
+
+        if(SessionId == 0)
         {
-            await SetupHub();
+            try
+            {
+                _session = await _sessionManager.StartSession(BggUser, CurrentUser);
+                await _hubConnection!.SendAsync(SessionEvents.JoinSession.ToString(), _session, CurrentUser);
+                MapAvailableGamesFromSession();
+            }
+            catch(NoGamesFoundException ex)
+            {
+                var errorParams = new DialogParameters();
+                errorParams.Add("ErrorMessage", ex.Message);
 
-            _user = CurrentUser;
-
-            _session = _sessionManager.GetActiveSession(SessionId) ?? throw new Exception($"Unable to get a session with ID {SessionId}");
-            _session?.JoinSession(_user);
-            await _hubConnection!.SendAsync("JoinSession", _session);
-
-            MapAvailableGamesFromSession();
+                var dialog = await _dialogService.ShowAsync<ErrorDialog>("No games found.", errorParams);
+                _ = await dialog.Result;
             
-            StateHasChanged();
-
-            await base.OnParametersSetAsync();
+                _navigation.NavigateTo($"/");
+            }
         }
+        else
+        {
+            await _hubConnection!.SendAsync(SessionEvents.JoinSession.ToString(), _session, CurrentUser);
+        }
+        
+        _preparingSession = false;
+        StateHasChanged();
 
-        base.OnAfterRender(firstRender);
+        await base.OnParametersSetAsync();
     }
 
     public async Task FindMatches()
@@ -148,11 +169,11 @@
             if(selectedGame == null)
             {
                 _session.RestrictOptions(2);
-                await _hubConnection!.SendAsync("NoMatches", _session);
+                await _hubConnection!.SendAsync(SessionEvents.NoMatches.ToString(), _session);
             }
             else
             {
-                await _hubConnection!.SendAsync("GameSelected", _session, selectedGame);
+                await _hubConnection!.SendAsync(SessionEvents.GameSelected.ToString(), _session, selectedGame);
             }
         }
         catch(NoGamesFoundException)
@@ -166,13 +187,13 @@
     public void ReadyUp()
     {
         _session.ToggleUserReadyStatus(CurrentUser);
-        _hubConnection!.SendAsync("UserReady", _session);
+        _hubConnection!.SendAsync(SessionEvents.UserReady.ToString(), _session);
     }
 
     public void ToggleGameSelection(BoardGame selectedGame)
     {
         selectedGame.IsSelected = !selectedGame.IsSelected;
-        _session.AddUserSelection(_user, selectedGame);
+        _session.AddUserSelection(CurrentUser, selectedGame);
         StateHasChanged();
     }
 
@@ -195,13 +216,14 @@
         => DisplayExtras ? "Hide info" : "Show info";
 
     public string GetReadyButtonText()
-        => _user.IsReady ? "Not ready!" : "I'm ready!";
+        => CurrentUser.IsReady ? "Not ready!" : "I'm ready!";
 
     public MudBlazor.Color GetGameSelectorButtonColor(BoardGame associatedGame)
         => associatedGame.IsSelected ? Color.Error : Color.Success;
 
-    public async Task UserJoined()
+    public async Task UserJoined(GamePickingSession session)
         => await InvokeAsync(StateHasChanged);
+        
 
     public async Task UserLeft()
         => await InvokeAsync(StateHasChanged);
@@ -256,33 +278,32 @@
             .WithUrl(_navigation.ToAbsoluteUri("/sessionHub"))
             .Build();
 
-        _hubConnection.On("UserJoined", async () => {
-            await UserJoined();
+        _hubConnection.On<GamePickingSession>(SessionEvents.UserJoined.ToString(), async (session) => {
+            await UserJoined(session);
         });
 
-        _hubConnection.On("UserLeft", async () => {
+        _hubConnection.On(SessionEvents.UserLeft.ToString(), async () => {
             await UserLeft();
         });
 
-        _hubConnection.On("UserReady", async () => {
+        _hubConnection.On(SessionEvents.UserReady.ToString(), async () => {
             await ReadyStatusChanged();
         });
 
-        _hubConnection.On<BoardGame>("GameSelected", async (selectedGame) => {
+        _hubConnection.On<BoardGame>(SessionEvents.GameSelected.ToString(), async (selectedGame) => {
             await GameSelected(selectedGame);
         });
 
-        _hubConnection.On("NoMatches", async () => {
+        _hubConnection.On(SessionEvents.NoMatches.ToString(), async () => {
             await NoMatches();
         });
 
         await _hubConnection.StartAsync();
     }
 
-    private async void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    public async void Dispose()
     {
-        _session.LeaveSession(_user);
-        await _hubConnection!.SendAsync("LeaveSession", _session);
+        await _hubConnection!.SendAsync(SessionEvents.LeaveSession.ToString(), _session, CurrentUser);
     }
 
     void FilterGames()

@@ -31,4 +31,18 @@ public interface ISessionHostingService
     /// <param name="sessionId">The ID of the session to check.</param>
     /// <returns>True if the session is found and is ready, otherwise false.</returns>
     bool SessionIsReady(int sessionId);
+
+    /// <summary>
+    /// Add <paramref name="user"/> to <paramref name="session"/> if they aren't already connected.
+    /// </summary>
+    /// <param name="session">The session to join.</param>
+    /// <param name="user">The user that's joining.</param>
+    void AddUserToSession(GamePickingSession session, User user);
+
+    /// <summary>
+    /// Remove <paramref name="user"/> from <paramref name="session"/> if they're connected.
+    /// </summary>
+    /// <param name="session">The session to leave.</param>
+    /// <param name="user">The user leaving.</param>
+    void RemoveUserFromSession(GamePickingSession session, User user);
 }

@@ -24,10 +24,6 @@
     </MudGrid>
 </MudContainer>
 
-<MudOverlay Visible="_preparingSession" DarkBackground="true" Absolute="true">
-    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
-</MudOverlay>
-
 @code 
 {    
     private bool _preparingSession = false;
@@ -44,19 +40,11 @@
         if(!dialogResult.Canceled)
         {
             var bggUser = dialogResult.Data.ToString();
-
-            _preparingSession = true;
-            StateHasChanged();
-
+            
             if(string.IsNullOrEmpty(bggUser))
                 throw new ArgumentNullException("bggUser");
 
-            var session = await _sessionManager.StartSession(bggUser, CurrentUser);
-
-            _preparingSession = false;
-            StateHasChanged();
-
-            _navManager.NavigateTo($"/Session/{session.SessionId}");
+            _navManager.NavigateTo($"/Session/0?bgguser={bggUser}");
         }
     }
 

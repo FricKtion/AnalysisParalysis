@@ -6,7 +6,8 @@ namespace AnalysisParalysis.Services.Models;
 
 public class GamePickingSession
 {
-    public GamePickingSession() { }
+    public GamePickingSession()
+        => (SessionId, OwningUser, SessionIsReady) = (0, new User(), false);
 
     public GamePickingSession(int sessionId, User owner)
         => (SessionId, OwningUser, SessionIsReady) = (sessionId, owner, true);
@@ -137,26 +138,6 @@ public class GamePickingSession
                     _selections[user].Remove(game);
             }
         }
-    }
-
-    /// <summary>
-    /// Adds <paramref name="user"/> as a connected user to this session.
-    /// </summary>
-    /// <param name="user">The user to add to this session.</param>
-    public void JoinSession(User user)
-    {
-        if(!ConnectedUsers.Select(x => x.Id).Contains(user.Id))
-            ConnectedUsers.Add(user);
-    }
-
-    /// <summary>
-    /// Removes <paramref name="user"/> if they are connected to this session.
-    /// </summary>
-    /// <param name="user">The user to remove from this session.</param>
-    public void LeaveSession(User user)
-    {
-        if(ConnectedUsers.Select(x => x.Id).Contains(user.Id))
-            ConnectedUsers.RemoveAll(x => x.Id == user.Id);
     }
 
     /// <summary>
