@@ -40,11 +40,11 @@
         if(!dialogResult.Canceled)
         {
             var bggUser = dialogResult.Data.ToString();
-
+            
             if(string.IsNullOrEmpty(bggUser))
                 throw new ArgumentNullException("bggUser");
 
-            _navManager.NavigateTo($"/Session/0");
+            _navManager.NavigateTo($"/Session/0?bgguser={bggUser}");
         }
     }
 

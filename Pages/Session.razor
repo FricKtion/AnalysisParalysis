@@ -1,5 +1,6 @@
 @page "/Session/{sessionId:int}"
 @using Microsoft.AspNetCore.SignalR.Client
+@using AnalysisParalysis.Services.Enums;
 @inject IDialogService _dialogService;
 @inject ISessionHostingService _sessionManager;
 @inject NavigationManager _navigation;
@@ -105,6 +106,7 @@
     public int SessionId { get; set; } = 0;
 
     [Parameter]
+    [SupplyParameterFromQuery(Name="bgguser")]
     public string BggUser { get; set; } = "";
 
     public bool DisplayExtras { get; set; } = true;
@@ -130,13 +132,26 @@
 
         if(SessionId == 0)
         {
-            _session = await _sessionManager.StartSession(BggUser, CurrentUser);
-            await _hubConnection!.SendAsync("JoinSession", _session, CurrentUser);
-            MapAvailableGamesFromSession();
+            try
+            {
+                _session = await _sessionManager.StartSession(BggUser, CurrentUser);
+                await _hubConnection!.SendAsync(SessionEvents.JoinSession.ToString(), _session, CurrentUser);
+                MapAvailableGamesFromSession();
+            }
+            catch(NoGamesFoundException ex)
+            {
+                var errorParams = new DialogParameters();
+                errorParams.Add("ErrorMessage", ex.Message);
+
+                var dialog = await _dialogService.ShowAsync<ErrorDialog>("No games found.", errorParams);
+                _ = await dialog.Result;
+            
+                _navigation.NavigateTo($"/");
+            }
         }
         else
         {
-            await _hubConnection!.SendAsync("JoinSession", _session, CurrentUser);
+            await _hubConnection!.SendAsync(SessionEvents.JoinSession.ToString(), _session, CurrentUser);
         }
         
         _preparingSession = false;
@@ -154,11 +169,11 @@
             if(selectedGame == null)
             {
                 _session.RestrictOptions(2);
-                await _hubConnection!.SendAsync("NoMatches", _session);
+                await _hubConnection!.SendAsync(SessionEvents.NoMatches.ToString(), _session);
             }
             else
             {
-                await _hubConnection!.SendAsync("GameSelected", _session, selectedGame);
+                await _hubConnection!.SendAsync(SessionEvents.GameSelected.ToString(), _session, selectedGame);
             }
         }
         catch(NoGamesFoundException)
@@ -172,7 +187,7 @@
     public void ReadyUp()
     {
         _session.ToggleUserReadyStatus(CurrentUser);
-        _hubConnection!.SendAsync("UserReady", _session);
+        _hubConnection!.SendAsync(SessionEvents.UserReady.ToString(), _session);
     }
 
     public void ToggleGameSelection(BoardGame selectedGame)
@@ -263,23 +278,23 @@
             .WithUrl(_navigation.ToAbsoluteUri("/sessionHub"))
             .Build();
 
-        _hubConnection.On<GamePickingSession>("UserJoined", async (session) => {
+        _hubConnection.On<GamePickingSession>(SessionEvents.UserJoined.ToString(), async (session) => {
             await UserJoined(session);
         });
 
-        _hubConnection.On("UserLeft", async () => {
+        _hubConnection.On(SessionEvents.UserLeft.ToString(), async () => {
             await UserLeft();
         });
 
-        _hubConnection.On("UserReady", async () => {
+        _hubConnection.On(SessionEvents.UserReady.ToString(), async () => {
             await ReadyStatusChanged();
         });
 
-        _hubConnection.On<BoardGame>("GameSelected", async (selectedGame) => {
+        _hubConnection.On<BoardGame>(SessionEvents.GameSelected.ToString(), async (selectedGame) => {
             await GameSelected(selectedGame);
         });
 
-        _hubConnection.On("NoMatches", async () => {
+        _hubConnection.On(SessionEvents.NoMatches.ToString(), async () => {
             await NoMatches();
         });
 
@@ -288,8 +303,7 @@
 
     public async void Dispose()
     {
-        _session.LeaveSession(CurrentUser);
-        await _hubConnection!.SendAsync("LeaveSession", _session);
+        await _hubConnection!.SendAsync(SessionEvents.LeaveSession.ToString(), _session, CurrentUser);
     }
 
     void FilterGames()

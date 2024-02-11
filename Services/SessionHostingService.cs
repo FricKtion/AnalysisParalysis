@@ -6,8 +6,6 @@ using AnalysisParalysis.Services.Models;
 
 namespace AnalysisParalysis.Services;
 
-// TODO - The logic between this, the session, and the session hub is confusing. Maybe move this logic into the session hub to clarify things?
-// TODO - Maybe we can keep this class and simply ONLY use it in the SessionHub? At that point why keep it though? Noodle on it.
 /// <inheritdoc />
 public class SessionHostingService : ISessionHostingService
 {
@@ -30,7 +28,7 @@ public class SessionHostingService : ISessionHostingService
             potentialId = rng.Next(minId, maxId);
 
         var collection = await _boardGameRepo.GetCollection(bggUser);
-        if(collection == null)
+        if(collection == null || collection.Count <= 0)
             throw new NoGamesFoundException($"No collection found for user '{bggUser}'.");
 
         var session = new GamePickingSession(potentialId, owner);
