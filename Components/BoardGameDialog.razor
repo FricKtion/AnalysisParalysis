@@ -18,7 +18,7 @@
     public BoardGame SelectedGame { get; set; } = new BoardGame();
 
     private string GetMessage()
-        => $"We picked {SelectedGame.Name}, good luck!";
+        => $"You all want to play {SelectedGame.Name}, good luck!";
 
     void Cancel() => MudDialog.Cancel();
 }
