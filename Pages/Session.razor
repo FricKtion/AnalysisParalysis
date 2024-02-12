@@ -151,7 +151,25 @@
         }
         else
         {
-            await _hubConnection!.SendAsync(SessionEvents.JoinSession.ToString(), _session, CurrentUser);
+            _session = _sessionManager.GetActiveSession(SessionId)
+                ?? new GamePickingSession();
+
+            try 
+            {
+                await _hubConnection!.SendAsync(SessionEvents.JoinSession.ToString(), _session, CurrentUser);
+            }
+            catch(Exception)
+            {
+                var errorParams = new DialogParameters();
+                errorParams.Add("ErrorMessage", $"An unexpected error occurred when attempting to join session #{_session.SessionId}.");
+
+                var dialog = await _dialogService.ShowAsync<ErrorDialog>("Unable to join session.", errorParams);
+                _ = await dialog.Result;
+            
+                _navigation.NavigateTo($"/");
+            }
+
+            MapAvailableGamesFromSession();
         }
         
         _preparingSession = false;
