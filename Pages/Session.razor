@@ -132,26 +132,11 @@
 
         if(SessionId == 0)
         {
-            try
-            {
-                _session = await _sessionManager.StartSession(BggUser, CurrentUser);
-                await _hubConnection!.SendAsync(SessionEvents.JoinSession.ToString(), _session, CurrentUser);
-                MapAvailableGamesFromSession();
-            }
-            catch(NoGamesFoundException ex)
-            {
-                var errorParams = new DialogParameters();
-                errorParams.Add("ErrorMessage", ex.Message);
-
-                var dialog = await _dialogService.ShowAsync<ErrorDialog>("No games found.", errorParams);
-                _ = await dialog.Result;
-            
-                _navigation.NavigateTo($"/");
-            }
+            await SetupNewSession();
         }
         else
         {
-            await _hubConnection!.SendAsync(SessionEvents.JoinSession.ToString(), _session, CurrentUser);
+            await SetupExistingSession();
         }
         
         _preparingSession = false;
@@ -236,6 +221,49 @@
 
     public async Task GameSelected(BoardGame selectedGame)
         => await InvokeAsync(() => InternalGameSelected(selectedGame));
+
+    private async Task SetupNewSession()
+    {
+        try
+        {
+            _session = await _sessionManager.StartSession(BggUser, CurrentUser);
+            await _hubConnection!.SendAsync(SessionEvents.JoinSession.ToString(), _session, CurrentUser);
+            MapAvailableGamesFromSession();
+        }
+        catch(NoGamesFoundException ex)
+        {
+            var errorParams = new DialogParameters();
+            errorParams.Add("ErrorMessage", ex.Message);
+
+            var dialog = await _dialogService.ShowAsync<ErrorDialog>("No games found.", errorParams);
+            _ = await dialog.Result;
+        
+            _navigation.NavigateTo($"/");
+        }
+    }
+
+    private async Task SetupExistingSession()
+    {
+        _session = _sessionManager.GetActiveSession(SessionId)
+            ?? new GamePickingSession();
+
+        try 
+        {
+            await _hubConnection!.SendAsync(SessionEvents.JoinSession.ToString(), _session, CurrentUser);
+        }
+        catch(Exception)
+        {
+            var errorParams = new DialogParameters();
+            errorParams.Add("ErrorMessage", $"An unexpected error occurred when attempting to join session #{_session.SessionId}.");
+
+            var dialog = await _dialogService.ShowAsync<ErrorDialog>("Unable to join session.", errorParams);
+            _ = await dialog.Result;
+        
+            _navigation.NavigateTo($"/");
+        }
+
+        MapAvailableGamesFromSession();
+    }
 
     private async Task InternalNoMatches()
     {
