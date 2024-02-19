@@ -40,7 +40,7 @@
             <MudItem xs="12">
                 <MudTextField 
                     @bind-Value="@GameFilter"
-                    Label="Filter"
+                    Label="Name Filter"
                     Clearable="true"
                     Variant="Variant.Outlined"
                     Adornment="Adornment.Start"
@@ -48,6 +48,25 @@
                     AdornmentColor="Color.Info" 
                     DebounceInterval="500"
                     OnDebounceIntervalElapsed="FilterGames" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudSelect T="int" 
+                    @bind-Value="@PlayerCountFilter"
+                    Label="Player Count Filter" 
+                    Variant="Variant.Outlined" 
+                    AnchorOrigin="Origin.BottomCenter"
+                    SelectedValuesChanged="FilterGames">
+                    <MudSelectItem T="int" Value="0" />
+                    <MudSelectItem T="int" Value="1" />
+                    <MudSelectItem T="int" Value="2" />
+                    <MudSelectItem T="int" Value="3" />
+                    <MudSelectItem T="int" Value="4" />
+                    <MudSelectItem T="int" Value="5" />
+                    <MudSelectItem T="int" Value="6" />
+                    <MudSelectItem T="int" Value="7" />
+                    <MudSelectItem T="int" Value="8" />
+                </MudSelect>
             </MudItem>
 
             if(_session.OwningUser.Id == CurrentUser.Id)
@@ -69,6 +88,7 @@
         }
     </MudGrid>
 
+    @* TODO - This is extra ugly now that extra information is being displayed. *@
     <MudGrid Spacing="2" Justify="Justify.SpaceEvenly">
         @if(_availableGames != null && _availableGames.Count > 0)
         {
@@ -117,6 +137,8 @@
     public string InfoIcon { get; set; } = Icons.Material.Rounded.ExpandMore;
 
     public string GameFilter { get; set; } = "";
+
+    public int PlayerCountFilter {  get; set; } = 0;
 
     private GamePickingSession _session = new GamePickingSession();
 
@@ -345,9 +367,20 @@
     {
         _availableGames.ForEach(x => x.IsHidden = false);
 
-        _availableGames
-            .Where(x => !x.Name.ToLower().Contains(GameFilter.ToLower()))
-            .ToList()
-            .ForEach(x => x.IsHidden = true);
+        if(!string.IsNullOrEmpty(GameFilter))
+        {
+            _availableGames
+                .Where(x => !x.Name.ToLower().Contains(GameFilter.ToLower()))
+                .ToList()
+                .ForEach(x => x.IsHidden = true);
+        }
+
+        if(PlayerCountFilter > 0)
+        {
+            _availableGames
+                .Where(x => x.MinimumPlayers > PlayerCountFilter || x.MaximumPlayers < PlayerCountFilter)
+                .ToList()
+                .ForEach(x => x.IsHidden = true);
+        }
     }
 }
