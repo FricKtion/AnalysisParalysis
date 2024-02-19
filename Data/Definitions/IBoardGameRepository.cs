@@ -19,5 +19,5 @@ public interface IBoardGameRepository
     /// </summary>
     /// <param name="boardGameId">The ID of the game to find details for.</param>
     /// <returns>Serialized response from BGG API if found, otherwise null.</returns>
-    Task<Thing?> GetBoardGameDetails(int boardGameId);
+    Task<Thing?>GetBoardGameDetails(IEnumerable<int> boardGameIds);
 }

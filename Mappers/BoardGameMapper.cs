@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using AnalysisParalysis.Data.Models;
 using AnalysisParalysis.Data.Models.BoardGameGeek;
 
@@ -13,24 +14,39 @@ public static class BoardGameMapper
     /// </summary>
     /// <param name="thing">Thing object serialized from BGG API.</param>
     /// <returns>BoardGame object.</returns>
-    public static BoardGame MapFromThing(Thing thing)
+    public static IEnumerable<BoardGame> MapFromThing(Thing thing)
     {
-        var boardGame = new BoardGame
+        var results = new List<BoardGame>();
+
+        foreach(var item in thing.Items)
         {
-            Id = thing.Item.Id,
-            Name = thing.Item.Names?.First(x => x.Type == "primary").Value
-                ?? "NO PRIMARY NAME FOUND",
-            TimesPlayed = -1
-        };
+            var boardGame = new BoardGame
+            {
+                Id = item.Id,
+                Name = item.Names?.First(x => x.Type == "primary").Value
+                    ?? "NO PRIMARY NAME FOUND",
+                TimesPlayed = -1
+            };
 
-        int yearPublished = 0;
-        int.TryParse(thing.Item.YearPublished.Value, out yearPublished);
-        boardGame.YearPublished = yearPublished;
+            int yearPublished = 0;
+            int.TryParse(item.YearPublished.Value, out yearPublished);
+            boardGame.YearPublished = yearPublished;
 
-        if(!string.IsNullOrEmpty(thing.Item.Thumbnail))
-            boardGame.Thumbnail = new Uri(thing.Item.Thumbnail);
+            if(!string.IsNullOrEmpty(item.Thumbnail))
+                boardGame.Thumbnail = new Uri(item.Thumbnail);
 
-        return boardGame;
+            int minPlayers = 0;
+            int.TryParse(item.MinPlayers.Value, out minPlayers);
+            boardGame.MinimumPlayers = minPlayers;
+
+            int maxPlayers = 0;
+            int.TryParse(item.MaxPlayers.Value, out maxPlayers);
+            boardGame.MaximumPlayers = maxPlayers; 
+
+            results.Add(boardGame);
+        }
+    
+        return results;
     }
 
     /// <summary>

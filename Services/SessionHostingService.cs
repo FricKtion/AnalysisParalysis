@@ -31,8 +31,12 @@ public class SessionHostingService : ISessionHostingService
         if(collection == null || collection.Count <= 0)
             throw new NoGamesFoundException($"No collection found for user '{bggUser}'.");
 
+        var gamesList = await _boardGameRepo.GetBoardGameDetails(collection.Items.Select(x => x.Id));
+        if(gamesList == null || !gamesList.Items.Any())
+            throw new NoGamesFoundException($"Unable to get game details for user collection.");
+
         var session = new GamePickingSession(potentialId, owner);
-        session.AvailableGames = BoardGameMapper.MapFromCollection(collection).ToList();
+        session.AvailableGames = BoardGameMapper.MapFromThing(gamesList).ToList();
 
         _activeSessions.Add(session);
 
