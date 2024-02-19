@@ -87,6 +87,9 @@
                             @if(DisplayExtras)
                             {
                                 <MudText>Times Played: @game.TimesPlayed</MudText>
+                                <MudText>Minimum Players: @game.MinimumPlayers</MudText>
+                                <MudText>Maximum Players: @game.MaximumPlayers</MudText>
+                                <MudText>Estimated Playtime: @game.MaximumPlaytime minutes</MudText>
                                 <MudText>Year Published: @game.YearPublished</MudText>
                             }
                         </MudCardContent>
@@ -293,6 +296,10 @@
                 Id = x.Id,
                 Name = x.Name,
                 Thumbnail = x.Thumbnail,
+                MaximumPlayers = x.MaximumPlayers,
+                MinimumPlayers = x.MinimumPlayers,
+                MaximumPlaytime = x.MaximumPlaytime,
+                MinimumPlaytime = x.MinimumPlaytime,
                 TimesPlayed = x.TimesPlayed,
                 YearPublished = x.YearPublished,
                 IsSelected = false

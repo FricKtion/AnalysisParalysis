@@ -14,6 +14,10 @@ public class BoardGame
 
     public int MaximumPlayers { get; set; } = 0;
 
+    public int MinimumPlaytime { get; set; } = 0;
+
+    public int MaximumPlaytime { get; set; } = 0;
+
     public Uri? Thumbnail { get; set; }
 
     public bool IsSelected { get; set; } = false;

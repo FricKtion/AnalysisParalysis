@@ -36,7 +36,7 @@ public class SessionHostingService : ISessionHostingService
             throw new NoGamesFoundException($"Unable to get game details for user collection.");
 
         var session = new GamePickingSession(potentialId, owner);
-        session.AvailableGames = BoardGameMapper.MapFromThing(gamesList).ToList();
+        session.AvailableGames = BoardGameMapper.MapWithDetails(collection, gamesList).ToList();
 
         _activeSessions.Add(session);
 
