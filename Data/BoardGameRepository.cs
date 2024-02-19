@@ -29,18 +29,7 @@ public class BoardGameRepository : IBoardGameRepository
             + "&excludesubtype=boardgameexpansion"
             + "&own=1";
 
-        var apiResponse = await _httpClient.GetAsync(collectionEndpoint);
-
-        var attempts = 0;
-        while(apiResponse.StatusCode == System.Net.HttpStatusCode.Accepted
-            && attempts <= maxRetry)
-        {
-            await Task.Delay(1500);
-
-            apiResponse = await _httpClient.GetAsync(collectionEndpoint);
-
-            attempts++;
-        }
+        var apiResponse = await CallBoardGameGeek(collectionEndpoint, maxRetry);
 
         if(!apiResponse.IsSuccessStatusCode)
             return null;
@@ -49,20 +38,39 @@ public class BoardGameRepository : IBoardGameRepository
     }
 
     /// <inheritdoc />
-    public async Task<Thing?> GetBoardGameDetails(int boardGameId)
+    public async Task<Thing?> GetBoardGameDetails(IEnumerable<int> boardGameIds)
     {
         var baseUrl = _appSettingService.Setting<string>("GameApiBaseUrl");
-        
+        var maxRetry = _appSettingService.Setting<int>("MaxRetry");
+
         var gameEndpoint = $"{baseUrl}/thing"
             + "?type=boardgame"
-            + $"&id={boardGameId}";
+            + $"&id={string.Join(',', boardGameIds)}";
 
-        var apiResponse = await _httpClient.GetAsync(gameEndpoint);
+        var apiResponse = await CallBoardGameGeek(gameEndpoint, maxRetry);
 
         if(!apiResponse.IsSuccessStatusCode)
             return null;
             
         return await ParseApiResponse<Thing>(apiResponse);
+    }
+
+    private async Task<HttpResponseMessage> CallBoardGameGeek(string endpoint, int maxRetry)
+    {
+        var apiResponse = await _httpClient.GetAsync(endpoint);
+
+        var attempts = 0;
+        while(apiResponse.StatusCode == System.Net.HttpStatusCode.Accepted
+            && attempts <= maxRetry)
+        {
+            await Task.Delay(1500);
+
+            apiResponse = await _httpClient.GetAsync(endpoint);
+
+            attempts++;
+        }
+
+        return apiResponse;
     }
 
     /// <summary>
