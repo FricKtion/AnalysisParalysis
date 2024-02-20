@@ -1,5 +1,6 @@
 using AnalysisParalysis.Data.Models;
 using AnalysisParalysis.Exceptions;
+using AnalysisParalysis.Pages;
 using AnalysisParalysis.Services.Definitions;
 using AnalysisParalysis.Services.Enums;
 using AnalysisParalysis.Services.Models;
@@ -13,6 +14,16 @@ public class SessionHub : Hub
 
     public SessionHub(ISessionHostingService sessionManager)
         => (_sessionManager) = (sessionManager);
+
+    public async Task StartSession(string bggUser, User user)
+    {
+        var newSession = await _sessionManager.StartSession(bggUser, user);
+        _sessionManager.AddUserToSession(newSession, user);
+
+        await Groups.AddToGroupAsync(Context.ConnectionId, newSession.SessionId.ToString());
+        await Clients.Group(newSession.SessionId.ToString())
+            .SendAsync(SessionEvents.StartSession.ToString(), newSession);
+    }
 
     public async Task JoinSession(GamePickingSession session, User user)
     {
