@@ -19,7 +19,11 @@ builder.Configuration
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(options => 
+{
+    options.EnableDetailedErrors = true;
+    options.MaximumReceiveMessageSize = 64000;
+});
 
 builder.Services.AddHttpClient<IBoardGameRepository>();
 

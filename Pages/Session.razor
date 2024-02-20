@@ -178,12 +178,12 @@
 
             if(selectedGame == null)
             {
-                _session.RestrictOptions(2);
+                _session.RestrictOptions(2); // TODO - Move to hub/session manager?
                 await _hubConnection!.SendAsync(SessionEvents.NoMatches.ToString(), _session);
             }
             else
             {
-                await _hubConnection!.SendAsync(SessionEvents.GameSelected.ToString(), _session, selectedGame);
+                await _hubConnection!.InvokeAsync(SessionEvents.GameSelected.ToString(), _session, selectedGame);
             }
         }
         catch(NoGamesFoundException)
@@ -230,6 +230,15 @@
 
     public MudBlazor.Color GetGameSelectorButtonColor(BoardGame associatedGame)
         => associatedGame.IsSelected ? Color.Error : Color.Success;
+    
+
+    public async Task StartSession(GamePickingSession session) 
+    {
+        _session = session;
+        MapAvailableGamesFromSession();
+        
+        await InvokeAsync(StateHasChanged);
+    }
 
     public async Task UserJoined(GamePickingSession session)
         => await InvokeAsync(StateHasChanged);
@@ -251,11 +260,9 @@
     {
         try
         {
-            _session = await _sessionManager.StartSession(BggUser, CurrentUser);
-            await _hubConnection!.SendAsync(SessionEvents.JoinSession.ToString(), _session, CurrentUser);
-            MapAvailableGamesFromSession();
+            await _hubConnection!.SendAsync(SessionEvents.StartSession.ToString(), BggUser, CurrentUser);
         }
-        catch(NoGamesFoundException ex)
+        catch(NoGamesFoundException ex) // TODO - The method above won't throw this exception. The hub should send an event that we can setup an event for instead of this.
         {
             var errorParams = new DialogParameters();
             errorParams.Add("ErrorMessage", ex.Message);
@@ -334,6 +341,10 @@
         _hubConnection = new HubConnectionBuilder()
             .WithUrl(_navigation.ToAbsoluteUri("/sessionHub"))
             .Build();
+
+        _hubConnection.On<GamePickingSession>(SessionEvents.StartSession.ToString(), async (session) => {
+            await StartSession(session); 
+        });
 
         _hubConnection.On<GamePickingSession>(SessionEvents.UserJoined.ToString(), async (session) => {
             await UserJoined(session);

@@ -2,6 +2,8 @@ namespace AnalysisParalysis.Services.Enums;
 
 public enum SessionEvents
 {
+    StartSession,
+    
     JoinSession,
 
     UserJoined,
