@@ -23,7 +23,7 @@ public class GamePickingSession
 
     public List<User> ConnectedUsers { get; set; } = new List<User>();
 
-    private readonly Dictionary<User, List<BoardGame>> _selections = new Dictionary<User, List<BoardGame>>();
+    private readonly Dictionary<string, List<BoardGame>> _selections = new Dictionary<string, List<BoardGame>>();
 
     /// <summary>
     /// Chooses a random board game from the lists of user selections, as long as 
@@ -128,15 +128,15 @@ public class GamePickingSession
         {
             if(game.IsSelected)
             {
-                if(_selections.ContainsKey(user))
-                    _selections[user].AddRange(selectedGames);
+                if(_selections.ContainsKey(user.Id))
+                    _selections[user.Id].AddRange(selectedGames);
                 else
-                    _selections.Add(user, selectedGames);
+                    _selections.Add(user.Id, selectedGames);
             }
             else
             {
-                if(_selections.ContainsKey(user))
-                    _selections[user].Remove(game);
+                if(_selections.ContainsKey(user.Id))
+                    _selections[user.Id].RemoveAll(x => x.Id == game.Id);
             }
         }
     }
