@@ -21,8 +21,7 @@ public class SessionHub : Hub
         _sessionManager.AddUserToSession(newSession, user);
 
         await Groups.AddToGroupAsync(Context.ConnectionId, newSession.SessionId.ToString());
-        await Clients.Group(newSession.SessionId.ToString())
-            .SendAsync(SessionEvents.StartSession.ToString(), newSession);
+        await Clients.Group(newSession.SessionId.ToString()).SendAsync(SessionEvents.StartSession.ToString(), newSession);
     }
 
     public async Task JoinSession(GamePickingSession session, User user)
@@ -33,8 +32,7 @@ public class SessionHub : Hub
             ?? throw new InvalidSessionIdException($"Unable to get a session with ID {session.SessionId}");
         _sessionManager.AddUserToSession(activeSession, user);
 
-        await Clients.Group(session.SessionId.ToString())
-            .SendAsync(SessionEvents.UserJoined.ToString(), activeSession);
+        await Clients.Group(session.SessionId.ToString()).SendAsync(SessionEvents.UserJoined.ToString(), activeSession);
     }
 
     public async Task LeaveSession(GamePickingSession sessionToLeave, User user)
@@ -43,19 +41,33 @@ public class SessionHub : Hub
 
         _sessionManager.RemoveUserFromSession(sessionToLeave, user);
         
-        await Clients.Group(sessionToLeave.SessionId.ToString())
-            .SendAsync(SessionEvents.UserLeft.ToString());
+        await Clients.Group(sessionToLeave.SessionId.ToString()).SendAsync(SessionEvents.UserLeft.ToString());
     }
 
-    public async Task UserReady(GamePickingSession usersSession)
-        => await Clients.Group(usersSession.SessionId.ToString())
-            .SendAsync(SessionEvents.UserReady.ToString());
+    public async Task UserReady(GamePickingSession session, User user)
+        => await Clients.Group(session.SessionId.ToString()).SendAsync(SessionEvents.UserReady.ToString(), _sessionManager.ToggleUserReadyStatus(session, user));
 
-    public async Task NoMatches(GamePickingSession session)
-        => await Clients.Group(session.SessionId.ToString())
-            .SendAsync(SessionEvents.NoMatches.ToString());
+    public async Task UserSelectedGame(GamePickingSession session, User user, BoardGame game)
+     => await Clients.Group(session.SessionId.ToString()).SendAsync(SessionEvents.UserSelectedGame.ToString(), _sessionManager.UserSelectedGame(session, user, game));
 
-    public async Task GameSelected(GamePickingSession session, BoardGame selectedGame)
-        => await Clients.Group(session.SessionId.ToString())
-            .SendAsync(SessionEvents.GameSelected.ToString(), selectedGame);
+    public async Task FindMatches(GamePickingSession session)
+    {
+        try
+        {
+            var selectedGame = _sessionManager.GetActiveSession(session.SessionId)?.ChooseFromSelections();
+
+            if(selectedGame == null)
+            {
+                await Clients.Group(session.SessionId.ToString()).SendAsync(SessionEvents.NoMatches.ToString(), _sessionManager.RestrictSessionGameOptions(session, 2));
+            }
+            else
+            {
+                await Clients.Group(session.SessionId.ToString()).SendAsync(SessionEvents.GameSelected.ToString(), selectedGame);
+            }
+        }
+        catch(NoGamesFoundException)
+        {
+            await Clients.Group(session.SessionId.ToString()).SendAsync(SessionEvents.NoGamesSelected.ToString(), session);
+        }
+    }
 }

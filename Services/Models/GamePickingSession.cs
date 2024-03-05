@@ -4,6 +4,7 @@ using MudBlazor;
 
 namespace AnalysisParalysis.Services.Models;
 
+// TODO - Move this to it's own project, along with the SessionHostingService and SessionHub. Then I can set the methods here to internal and force the class to be used as intended.
 public class GamePickingSession
 {
     public GamePickingSession()

@@ -171,39 +171,18 @@
     }
 
     public async Task FindMatches()
-    {
-        try 
-        {
-            var selectedGame = _session.ChooseFromSelections();
-
-            if(selectedGame == null)
-            {
-                _session.RestrictOptions(2); // TODO - Move to hub/session manager?
-                await _hubConnection!.SendAsync(SessionEvents.NoMatches.ToString(), _session);
-            }
-            else
-            {
-                await _hubConnection!.InvokeAsync(SessionEvents.GameSelected.ToString(), _session, selectedGame);
-            }
-        }
-        catch(NoGamesFoundException)
-        {
-            var parameters = new DialogParameters();
-            parameters.Add("ErrorMessage", $"Nobody has selected any games. Pick some then try again.");
-            await _dialogService.ShowAsync<ErrorDialog>("No games selected.", parameters);
-        }
-    }
+        => await _hubConnection!.SendAsync(SessionEvents.FindMatches.ToString(), _session);
 
     public void ReadyUp()
     {
-        _session.ToggleUserReadyStatus(CurrentUser);
-        _hubConnection!.SendAsync(SessionEvents.UserReady.ToString(), _session);
+        CurrentUser.IsReady = !CurrentUser.IsReady;
+        _hubConnection!.SendAsync(SessionEvents.UserReady.ToString(), _session, CurrentUser);
     }
 
     public void ToggleGameSelection(BoardGame selectedGame)
     {
         selectedGame.IsSelected = !selectedGame.IsSelected;
-        _session.AddUserSelection(CurrentUser, selectedGame);
+        _hubConnection!.SendAsync(SessionEvents.UserSelectedGame.ToString(), _session, CurrentUser, selectedGame);
         StateHasChanged();
     }
 
@@ -241,20 +220,38 @@
     }
 
     public async Task UserJoined(GamePickingSession session)
-        => await InvokeAsync(StateHasChanged);
-        
+    {
+        _session = session;
+        await InvokeAsync(StateHasChanged);
+    }        
 
-    public async Task UserLeft()
-        => await InvokeAsync(StateHasChanged);
+    public async Task UserLeft(GamePickingSession session)
+    {
+        _session = session;
+        await InvokeAsync(StateHasChanged);
+    }
 
-    public async Task ReadyStatusChanged()
-        => await InvokeAsync(StateHasChanged);
+    public async Task ReadyStatusChanged(GamePickingSession session)
+    {
+        _session = session;
+        await InvokeAsync(StateHasChanged);
+    }
 
-    public async Task NoMatches()
-        => await InvokeAsync(InternalNoMatches);
+    public async Task NoMatches(GamePickingSession session)
+    {
+        _session = session;
+        await InvokeAsync(InternalNoMatches);
+    }
 
     public async Task GameSelected(BoardGame selectedGame)
         => await InvokeAsync(() => InternalGameSelected(selectedGame));
+
+    public async Task NoGamesSelected()
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("ErrorMessage", $"Nobody has selected any games. Pick some then try again.");
+        await _dialogService.ShowAsync<ErrorDialog>("No games selected.", parameters);
+    }
 
     private async Task SetupNewSession()
     {
@@ -299,6 +296,7 @@
 
     private async Task InternalNoMatches()
     {
+        // TODO - The site stops working after this happens. 
         var parameters = new DialogParameters();
         parameters.Add("ErrorMessage", "You guys didn't select any matching games. We'll limit the selections and have you try again.");
         await _dialogService.ShowAsync<ErrorDialog>("No matches!", parameters);
@@ -350,25 +348,30 @@
             await UserJoined(session);
         });
 
-        _hubConnection.On(SessionEvents.UserLeft.ToString(), async () => {
-            await UserLeft();
+        _hubConnection.On<GamePickingSession>(SessionEvents.UserLeft.ToString(), async (session) => {
+            await UserLeft(session);
         });
 
-        _hubConnection.On(SessionEvents.UserReady.ToString(), async () => {
-            await ReadyStatusChanged();
+        _hubConnection.On<GamePickingSession>(SessionEvents.UserReady.ToString(), async (session) => {
+            await ReadyStatusChanged(session);
         });
 
         _hubConnection.On<BoardGame>(SessionEvents.GameSelected.ToString(), async (selectedGame) => {
             await GameSelected(selectedGame);
         });
 
-        _hubConnection.On(SessionEvents.NoMatches.ToString(), async () => {
-            await NoMatches();
+        _hubConnection.On<GamePickingSession>(SessionEvents.NoMatches.ToString(), async (session) => {
+            await NoMatches(session);
+        });
+
+        _hubConnection.On(SessionEvents.NoGamesSelected.ToString(), async () => {
+            await NoGamesSelected();
         });
 
         await _hubConnection.StartAsync();
     }
 
+    // TODO - Make sure users leave the session when they leave the tab that the site is loaded in. I don't think this works. 
     public async void Dispose()
     {
         await _hubConnection!.SendAsync(SessionEvents.LeaveSession.ToString(), _session, CurrentUser);

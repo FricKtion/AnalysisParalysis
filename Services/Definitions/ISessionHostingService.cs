@@ -33,6 +33,30 @@ public interface ISessionHostingService
     bool SessionIsReady(int sessionId);
 
     /// <summary>
+    /// Reduces the number of available games in the session to <paramref name="restrictCount"/> per user.
+    /// </summary>
+    /// <param name="restrictCount">The number of games per user to restrict to.</param>
+    /// <returns>The updated session.</returns>
+    GamePickingSession RestrictSessionGameOptions(GamePickingSession session, int restrictCount);
+
+    /// <summary>
+    /// If <paramref name="user"/> is found in <paramref name="session"/>, toggle that user's ready status.
+    /// </summary>
+    /// <param name="session">The session to look for the provided user in.</param>
+    /// <param name="user">The user to toggle the ready status of.</param>
+    /// <returns>The updated session.</returns>
+    GamePickingSession ToggleUserReadyStatus(GamePickingSession session, User user);
+
+    /// <summary>
+    /// Updates the session to denote which game was selected and by which user.
+    /// </summary>
+    /// <param name="session">The session to be updated.</param>
+    /// <param name="user">The user who selected the game.</param>
+    /// <param name="game">The game that was selected.</param>
+    /// <returns>The updated session.</returns>
+    GamePickingSession UserSelectedGame(GamePickingSession session, User user, BoardGame game);
+
+    /// <summary>
     /// Add <paramref name="user"/> to <paramref name="session"/> if they aren't already connected.
     /// </summary>
     /// <param name="session">The session to join.</param>
