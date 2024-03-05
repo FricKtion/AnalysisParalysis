@@ -1,6 +1,8 @@
 using AnalysisParalysis.Data.Definitions;
+using AnalysisParalysis.Data.Models;
 using AnalysisParalysis.Exceptions;
 using AnalysisParalysis.Mappers;
+using AnalysisParalysis.Pages;
 using AnalysisParalysis.Services.Definitions;
 using AnalysisParalysis.Services.Models;
 
@@ -53,6 +55,46 @@ public class SessionHostingService : ISessionHostingService
         => _activeSessions.Exists(x => x.SessionId == sessionId && x.SessionIsReady);
 
     /// <inheritdoc />
+    public GamePickingSession RestrictSessionGameOptions(GamePickingSession session, int restrictCount)
+    {
+        if(!SessionExists(session))
+            throw new InvalidSessionIdException();
+
+        GetActiveSession(session.SessionId)!.RestrictOptions(restrictCount);
+
+        return GetActiveSession(session.SessionId)!;
+    }
+
+    /// <inheritdoc />
+    public GamePickingSession ToggleUserReadyStatus(GamePickingSession session, User user)
+    {
+        if(!SessionExists(session))
+            throw new InvalidSessionIdException();
+
+        if(!UserIsInSession(session, user))
+            throw new UserNotConnectedException();
+        
+        var userToToggle = _activeSessions.Single(x => x.SessionId == session.SessionId).ConnectedUsers.Single(x => x.Id == user.Id);
+        userToToggle.IsReady = !userToToggle.IsReady;
+
+        return GetActiveSession(session.SessionId)!;
+    }
+
+    /// <inheritdoc />
+    public GamePickingSession UserSelectedGame(GamePickingSession session, User user, BoardGame game)
+    {
+        if(!SessionExists(session))
+            throw new InvalidSessionIdException();
+
+        if(!UserIsInSession(session, user))
+            throw new UserNotConnectedException();
+
+        _activeSessions.Single(x => x.SessionId == session.SessionId).AddUserSelection(user, game);
+
+        return GetActiveSession(session.SessionId)!;
+    }
+
+    /// <inheritdoc />
     public void AddUserToSession(GamePickingSession session, User user)
     {
         if(!_activeSessions.Select(x => x.SessionId).Contains(session.SessionId))
@@ -71,4 +113,10 @@ public class SessionHostingService : ISessionHostingService
         if(_activeSessions.Single(x => x.SessionId == session.SessionId).ConnectedUsers.Select(x => x.Id).Contains(user.Id))
             _activeSessions.Single(x => x.SessionId == session.SessionId).ConnectedUsers.RemoveAll(x => x.Id == user.Id);
     }
+
+    private bool SessionExists(GamePickingSession session)
+        => _activeSessions.Select(x => x.SessionId).Contains(session.SessionId);
+
+    private bool UserIsInSession(GamePickingSession session, User user)
+        => _activeSessions.Single(x => x.SessionId == session.SessionId).ConnectedUsers.Select(x => x.Id).Contains(user.Id);
 }

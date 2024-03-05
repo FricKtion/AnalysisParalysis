@@ -14,7 +14,13 @@ public enum SessionEvents
 
     UserReady,
 
+    UserSelectedGame,
+
+    FindMatches,
+
     NoMatches,
 
-    GameSelected
+    GameSelected,
+
+    NoGamesSelected
 }
