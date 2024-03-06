@@ -58,6 +58,7 @@ public class SessionHub : Hub
 
             if(selectedGame == null)
             {
+                _ = _sessionManager.UnreadyAllUsers(session);
                 await Clients.Group(session.SessionId.ToString()).SendAsync(SessionEvents.NoMatches.ToString(), _sessionManager.RestrictSessionGameOptions(session, 2));
             }
             else

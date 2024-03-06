@@ -48,6 +48,13 @@ public interface ISessionHostingService
     GamePickingSession ToggleUserReadyStatus(GamePickingSession session, User user);
 
     /// <summary>
+    /// Mark all users in <paramref name="session"/> as not ready.
+    /// </summary>
+    /// <param name="session">The session to make changes to.</param>
+    /// <returns>The updated session.</returns>
+    GamePickingSession UnreadyAllUsers(GamePickingSession session);
+
+    /// <summary>
     /// Updates the session to denote which game was selected and by which user.
     /// </summary>
     /// <param name="session">The session to be updated.</param>

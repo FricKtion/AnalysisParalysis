@@ -80,6 +80,23 @@ public class SessionHostingService : ISessionHostingService
         return GetActiveSession(session.SessionId)!;
     }
 
+    /// <inheritdoc/>
+    public GamePickingSession UnreadyAllUsers(GamePickingSession session)
+    {
+        if(!SessionExists(session))
+            throw new InvalidSessionIdException();
+
+        if(GetActiveSession(session.SessionId)!.ConnectedUsers == null)
+            throw new UserNotConnectedException();
+
+        foreach(var user in GetActiveSession(session.SessionId)!.ConnectedUsers!)
+        {
+            user.IsReady = false;
+        }
+
+        return GetActiveSession(session.SessionId)!;
+    }
+
     /// <inheritdoc />
     public GamePickingSession UserSelectedGame(GamePickingSession session, User user, BoardGame game)
     {
