@@ -4,8 +4,7 @@ using AnalysisParalysis.Hubs;
 using AnalysisParalysis.Services;
 using AnalysisParalysis.Services.Definitions;
 using AnalysisParalysis.Services.Models;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
+using Blazored.LocalStorage;
 using Microsoft.AspNetCore.ResponseCompression;
 using MudBlazor.Services;
 
@@ -24,6 +23,8 @@ builder.Services.AddSignalR(options =>
     options.EnableDetailedErrors = true;
     options.MaximumReceiveMessageSize = 64000;
 });
+
+builder.Services.AddBlazoredLocalStorage();
 
 builder.Services.AddHttpClient<IBoardGameRepository>();
 

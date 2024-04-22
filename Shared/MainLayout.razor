@@ -1,5 +1,5 @@
 ﻿@inherits LayoutComponentBase
-@inject ProtectedLocalStorage browserCache
+@inject Blazored.LocalStorage.ILocalStorageService browserCache
 
 <MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_darkMode" Theme="@_customTheme" />
 <MudDialogProvider/>
@@ -32,25 +32,29 @@
     {
         if(firstRender)
         {
-            var cacheResult = await browserCache.GetAsync<bool>("darkMode");
-
-            if(cacheResult.Success)
+            try 
             {
-                _darkMode = cacheResult.Value;
+                _darkMode = await browserCache.GetItemAsync<bool>("darkMode");
             }
-            else
+            catch(Exception)
             {
                 _darkMode = await _mudThemeProvider.GetSystemPreference();
-                await browserCache.SetAsync("darkMode", _darkMode);
+                await browserCache.SetItemAsync("darkMode", _darkMode);
             }
-                
-            StateHasChanged();
+            finally
+            {
+                StateHasChanged();
+            }   
         }
     }
 
     async void DarkModeToggled()
     {
         _darkMode = !_darkMode;
-        await browserCache.SetAsync("darkMode", _darkMode);
+        await browserCache.SetItemAsync("darkMode", _darkMode);
     }
-}
+}    using System.Security.Cryptography;
+
+#line default
+#line hidden
+#nullable disable
