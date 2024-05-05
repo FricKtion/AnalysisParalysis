@@ -32,9 +32,7 @@ public class GamePickingSession
     /// <returns>BoardGame object or null if no mathces.</returns>
     public BoardGame? ChooseFromSelections()
     {
-        var allGames = new List<BoardGame>();
-        foreach(var selectionList in _selections)
-            allGames.AddRange(selectionList.Value);
+        var allGames = MergeUserSelections().ToList();
 
         if(_selections.Keys.Count > 1)
             return ChooseFromSelections_MultipleUsers(allGames);
@@ -60,7 +58,7 @@ public class GamePickingSession
     /// <returns>A singel BoardGame selected at random from the matches. If no matches, null.</returns>
     private BoardGame? ChooseFromSelections_MultipleUsers(List<BoardGame> allGames)
     {
-        var matches = GameSelector.FindMatches(allGames.ToArray());
+        var matches = GameSelector.FindMatches(ConnectedUsers.Count, allGames.ToArray());
 
         if(!matches.Any())
             return null;
@@ -78,6 +76,7 @@ public class GamePickingSession
         AvailableGames.Clear();
 
         var rng = new Random();
+        var allGames = MergeUserSelections();
 
         foreach(var selectionsList in _selections.Values)
         {
@@ -87,10 +86,19 @@ public class GamePickingSession
             }
             else
             {
+                // TODO - There's almost certainly a more efficient way/place to do this.
+                foreach(var game in selectionsList)
+                    game.TimesSelected = GameSelector.GetSelectionCount(game, allGames.ToArray());
+                
                 int i = 0;
                 while(i < countFromEachUser)
                 {
-                    var selectedIndex = rng.Next(0, selectionsList.Count - 1);
+                    var selectedIndex = i;
+                    if(selectionsList.OrderBy(x => x.TimesSelected).ElementAt(i).TimesSelected == 1)
+                    {
+                        selectedIndex = rng.Next(0, selectionsList.Count - 1);
+                    }
+
                     AvailableGames.Add(selectionsList[selectedIndex]);
                     selectionsList.RemoveAt(selectedIndex);
                     i++;
@@ -150,5 +158,31 @@ public class GamePickingSession
     {
         ConnectedUsers.Single(x => x.Id == user.Id).IsReady = 
             !ConnectedUsers.Single(x => x.Id == user.Id).IsReady;
+    }
+
+    /// <summary>
+    /// TODO
+    /// </summary>
+    /// <param name="allGames"></param>
+    private void CountGameSelections(List<BoardGame> allGames)
+    {   
+        foreach(var game in allGames)
+        {
+            // TODO - This can probably be made cleaner, if a game is selected [x] times, this number will be calculated [x] times.
+            game.TimesSelected = GameSelector.GetSelectionCount(game, allGames.ToArray());
+        }
+    }
+
+    /// <summary>
+    /// TODO
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerable<BoardGame> MergeUserSelections()
+    {
+        var allGames = new List<BoardGame>();
+        foreach(var selectionList in _selections)
+            allGames.AddRange(selectionList.Value);
+
+        return allGames;
     }
 }

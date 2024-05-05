@@ -23,4 +23,6 @@ public class BoardGame
     public bool IsSelected { get; set; } = false;
 
     public bool IsHidden { get; set; } = false;
+
+    public int TimesSelected { get; set; } = 0;
 }
