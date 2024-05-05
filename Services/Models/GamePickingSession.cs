@@ -87,20 +87,22 @@ public class GamePickingSession
             else
             {
                 // TODO - There's almost certainly a more efficient way/place to do this.
-                // TODO - Prevent the same game from being added to AvailableGames from different users.
+                // TODO - Try to find a new game if the selected game already exists and isn't being added.
                 foreach(var game in selectionsList)
                     game.TimesSelected = GameSelector.GetSelectionCount(game, allGames.ToArray());
                 
                 int i = 0;
                 while(i < countFromEachUser)
                 {
-                    var selectedIndex = i;
-                    if(selectionsList.OrderBy(x => x.TimesSelected).ElementAt(i).TimesSelected == 1)
+                    var selectedIndex = 0;
+                    if(selectionsList.OrderBy(x => x.TimesSelected).ElementAt(0).TimesSelected == 1)
                     {
                         selectedIndex = rng.Next(0, selectionsList.Count - 1);
                     }
 
-                    AvailableGames.Add(selectionsList[selectedIndex]);
+                    if(!AvailableGames.Select(x => x.Id).Contains(selectionsList[selectedIndex].Id))
+                        AvailableGames.Add(selectionsList[selectedIndex]);
+
                     selectionsList.RemoveAt(selectedIndex);
                     i++;
                 }
