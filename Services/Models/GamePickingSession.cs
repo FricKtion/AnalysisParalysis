@@ -87,6 +87,7 @@ public class GamePickingSession
             else
             {
                 // TODO - There's almost certainly a more efficient way/place to do this.
+                // TODO - Prevent the same game from being added to AvailableGames from different users.
                 foreach(var game in selectionsList)
                     game.TimesSelected = GameSelector.GetSelectionCount(game, allGames.ToArray());
                 
