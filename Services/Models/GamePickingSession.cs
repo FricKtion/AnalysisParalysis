@@ -100,7 +100,7 @@ public class GamePickingSession
                         selectedIndex = rng.Next(0, selectionsList.Count - 1);
                     }
 
-                    if(!AvailableGames.Select(x => x.Id).Contains(selectionsList[selectedIndex].Id))
+                    if(!AvailableGames.Select(x => x.Name).Contains(selectionsList[selectedIndex].Name))
                         AvailableGames.Add(selectionsList[selectedIndex]);
 
                     selectionsList.RemoveAt(selectedIndex);
