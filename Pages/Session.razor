@@ -164,9 +164,6 @@
             await SetupExistingSession();
         }
         
-        _preparingSession = false;
-        StateHasChanged();
-
         await base.OnParametersSetAsync();
     }
 
@@ -216,6 +213,7 @@
         _session = session;
         MapAvailableGamesFromSession();
         
+        _preparingSession = false;
         await InvokeAsync(StateHasChanged);
     }
 
