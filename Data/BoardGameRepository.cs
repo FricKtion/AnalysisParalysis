@@ -61,7 +61,7 @@ public class BoardGameRepository : IBoardGameRepository
         while(apiResponse.StatusCode == System.Net.HttpStatusCode.Accepted
             && attempts <= maxRetry)
         {
-            await Task.Delay(1500);
+            await Task.Delay(3000);
 
             apiResponse = await _httpClient.GetAsync(endpoint);
 
