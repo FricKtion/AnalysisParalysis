@@ -3,6 +3,7 @@ using System.Xml.Serialization;
 using AnalysisParalysis.Data.Definitions;
 using AnalysisParalysis.Data.Models.BoardGameGeek;
 using AnalysisParalysis.Services.Definitions;
+using Microsoft.AspNetCore.Server.HttpSys;
 
 namespace AnalysisParalysis.Data;
 
@@ -53,22 +54,37 @@ public class BoardGameRepository : IBoardGameRepository
         return await ParseApiResponse<Thing>(apiResponse);
     }
 
+    /// <summary>
+    /// Make a call to the BoardGameGeek XML2 API.
+    /// </summary>
+    /// <param name="endpoint">The specific endpoint to send the reuqest to.</param>
+    /// <param name="maxRetry">The maximum number of attempts to make at this request.</param>
+    /// <returns>Returns a successful API response or the latest API response if an OK was never received.</returns>
+    /// <exception cref="AggregateException">If no successful attempts an AggregateException is thrown containing all exceptions encountered.</exception>
     private async Task<HttpResponseMessage> CallBoardGameGeek(string endpoint, int maxRetry)
     {
-        var apiResponse = await _httpClient.GetAsync(endpoint);
-
-        var attempts = 0;
-        while(apiResponse.StatusCode == System.Net.HttpStatusCode.Accepted
-            && attempts <= maxRetry)
+        var exceptions = new List<Exception>();
+        for(int i = 0; i < maxRetry; i++)
         {
-            await Task.Delay(3000);
+            try 
+            {
+                var apiResponse = await _httpClient.GetAsync(endpoint);
 
-            apiResponse = await _httpClient.GetAsync(endpoint);
-
-            attempts++;
+                if(apiResponse.StatusCode == System.Net.HttpStatusCode.Accepted)
+                {
+                    await Task.Delay(3000);
+                    continue;
+                }
+                    
+                return apiResponse;
+            }
+            catch(HttpRequestException httpEx)
+            {
+                exceptions.Add(httpEx);
+            }
         }
 
-        return apiResponse;
+        throw new AggregateException(exceptions);
     }
 
     /// <summary>
