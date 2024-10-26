@@ -19,7 +19,7 @@ public class SessionHostingService : ISessionHostingService
         => (_boardGameRepo) = (boardGameRepo);
 
    /// <inheritdoc />
-    public async Task<GamePickingSession> StartSession(string bggUser, User owner)
+    public async Task<GamePickingSession> StartSession(string bggUser, string ownerId)
     {
         var rng = new Random();
         var minId = 99;
@@ -37,7 +37,7 @@ public class SessionHostingService : ISessionHostingService
         if(gamesList == null || !gamesList.Items.Any())
             throw new NoGamesFoundException($"Unable to get game details for user collection.");
 
-        var session = new GamePickingSession(potentialId, owner);
+        var session = new GamePickingSession(potentialId, new User() { Id = ownerId });
         session.AvailableGames = BoardGameMapper.MapWithDetails(collection, gamesList).ToList();
 
         _activeSessions.Add(session);
@@ -112,13 +112,13 @@ public class SessionHostingService : ISessionHostingService
     }
 
     /// <inheritdoc />
-    public void AddUserToSession(GamePickingSession session, User user)
+    public void AddUserToSession(GamePickingSession session, string userId)
     {
         if(!_activeSessions.Select(x => x.SessionId).Contains(session.SessionId))
             return;
 
-        if(!_activeSessions.Single(x => x.SessionId == session.SessionId).ConnectedUsers.Select(x => x.Id).Contains(user.Id))
-            _activeSessions.Single(x => x.SessionId == session.SessionId).ConnectedUsers.Add(user);
+        if(!_activeSessions.Single(x => x.SessionId == session.SessionId).ConnectedUsers.Select(x => x.Id).Contains(userId))
+            _activeSessions.Single(x => x.SessionId == session.SessionId).ConnectedUsers.Add(new User() { Id = userId });
     }
 
     /// <inheritdoc />

@@ -3,6 +3,8 @@ namespace AnalysisParalysis.Services.Enums;
 public enum SessionEvents
 {
     StartSession,
+
+    NoGamesFoundException,
     
     JoinSession,
 

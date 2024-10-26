@@ -15,22 +15,31 @@ public class SessionHub : Hub
     public SessionHub(ISessionHostingService sessionManager)
         => (_sessionManager) = (sessionManager);
 
-    public async Task StartSession(string bggUser, User user)
+    public async Task StartSession(string bggUser, string userId)
     {
-        var newSession = await _sessionManager.StartSession(bggUser, user);
-        _sessionManager.AddUserToSession(newSession, user);
+        try
+        {
+            //throw new NoGamesFoundException("Just testing! :)");
 
-        await Groups.AddToGroupAsync(Context.ConnectionId, newSession.SessionId.ToString());
-        await Clients.Group(newSession.SessionId.ToString()).SendAsync(SessionEvents.StartSession.ToString(), newSession);
+            var newSession = await _sessionManager.StartSession(bggUser, userId);
+            _sessionManager.AddUserToSession(newSession, userId);
+
+            await Groups.AddToGroupAsync(Context.ConnectionId, newSession.SessionId.ToString());
+            await Clients.Group(newSession.SessionId.ToString()).SendAsync(SessionEvents.StartSession.ToString(), newSession);
+        }
+        catch(NoGamesFoundException ex)
+        {
+            await Clients.All.SendAsync(SessionEvents.NoGamesFoundException.ToString(), ex);
+        }
     }
 
-    public async Task JoinSession(GamePickingSession session, User user)
+    public async Task JoinSession(GamePickingSession session, string userId)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, session.SessionId.ToString());
 
         var activeSession = _sessionManager.GetActiveSession(session.SessionId) 
             ?? throw new InvalidSessionIdException($"Unable to get a session with ID {session.SessionId}");
-        _sessionManager.AddUserToSession(activeSession, user);
+        _sessionManager.AddUserToSession(activeSession, userId);
 
         await Clients.Group(session.SessionId.ToString()).SendAsync(SessionEvents.UserJoined.ToString(), activeSession);
     }
@@ -48,7 +57,7 @@ public class SessionHub : Hub
         => await Clients.Group(session.SessionId.ToString()).SendAsync(SessionEvents.UserReady.ToString(), _sessionManager.ToggleUserReadyStatus(session, user));
 
     public async Task UserSelectedGame(GamePickingSession session, User user, BoardGame game)
-     => await Clients.Group(session.SessionId.ToString()).SendAsync(SessionEvents.UserSelectedGame.ToString(), _sessionManager.UserSelectedGame(session, user, game));
+        => await Clients.Group(session.SessionId.ToString()).SendAsync(SessionEvents.UserSelectedGame.ToString(), _sessionManager.UserSelectedGame(session, user, game));
 
     public async Task FindMatches(GamePickingSession session)
     {

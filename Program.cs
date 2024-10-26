@@ -17,7 +17,10 @@ builder.Configuration
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddMudServices();
+builder.Services.AddMudServices(options => 
+{
+    options.PopoverOptions.CheckForPopoverProvider = false;
+});
 builder.Services.AddSignalR(options => 
 {
     options.EnableDetailedErrors = true;
@@ -63,4 +66,4 @@ app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 app.MapHub<SessionHub>("/sessionHub");
 
-app.Run();
+await app.RunAsync();

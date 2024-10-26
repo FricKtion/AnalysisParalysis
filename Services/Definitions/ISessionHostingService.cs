@@ -16,7 +16,7 @@ public interface ISessionHostingService
     /// <param name="bggUser">The BGG collection to allow users to pick games from.</param>
     /// <returns>The newly created GamePickingSession object.</returns>
     /// <exception cref="NoGamesFoundException">Thrown if no games are found in the provided user's collection.</exception>
-    Task<GamePickingSession> StartSession(string bggUser, User owner);
+    Task<GamePickingSession> StartSession(string bggUser, string ownerId);
 
     /// <summary>
     /// Looks for an acive session with an ID matching <paramref name="sessionId"/>.
@@ -68,7 +68,7 @@ public interface ISessionHostingService
     /// </summary>
     /// <param name="session">The session to join.</param>
     /// <param name="user">The user that's joining.</param>
-    void AddUserToSession(GamePickingSession session, User user);
+    void AddUserToSession(GamePickingSession session, string userId);
 
     /// <summary>
     /// Remove <paramref name="user"/> from <paramref name="session"/> if they're connected.

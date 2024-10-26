@@ -41,17 +41,30 @@ public class BoardGameRepository : IBoardGameRepository
     {
         var baseUrl = _appSettingService.Setting<string>("GameApiBaseUrl");
         var maxRetry = _appSettingService.Setting<int>("MaxRetry");
+        var responses = new List<Thing>();
 
-        var gameEndpoint = $"{baseUrl}/thing"
-            + "?type=boardgame"
-            + $"&id={string.Join(',', boardGameIds)}";
+        for(int i = 0; i < boardGameIds.Count(); i += 20)
+        {
+            var stopIndex = i + 20;
+            if(stopIndex > boardGameIds.Count())
+                stopIndex = boardGameIds.Count();
 
-        var apiResponse = await CallBoardGameGeek(gameEndpoint, maxRetry);
+            var batchedIds = boardGameIds.Take(new Range(i, stopIndex));
+            var gameEndpoint = $"{baseUrl}/thing"
+                + "?type=boardgame"
+                + $"&id={string.Join(',', batchedIds)}";
 
-        if(!apiResponse.IsSuccessStatusCode)
-            return null;
-            
-        return await ParseApiResponse<Thing>(apiResponse);
+            var apiResponse = await CallBoardGameGeek(gameEndpoint, maxRetry);
+
+            if(apiResponse.IsSuccessStatusCode)
+                responses.Add(await ParseApiResponse<Thing>(apiResponse));
+        }
+        
+        var items = new List<Thing.Item>();
+        foreach(var response in responses)
+            items.AddRange(response.Items);
+        
+        return new Thing() { Items = items.ToArray() };
     }
 
     /// <summary>

@@ -1,6 +1,7 @@
 @page "/Session/{sessionId:int}"
 @using Microsoft.AspNetCore.SignalR.Client
 @using AnalysisParalysis.Services.Enums;
+@using System.IO;
 @inject IDialogService _dialogService;
 @inject ISessionHostingService _sessionManager;
 @inject NavigationManager _navigation;
@@ -253,22 +254,7 @@
     }
 
     private async Task SetupNewSession()
-    {
-        try
-        {
-            await _hubConnection!.SendAsync(SessionEvents.StartSession.ToString(), BggUser, CurrentUser);
-        }
-        catch(NoGamesFoundException ex) // TODO - The method above won't throw this exception. The hub should send an event that we can setup an event for instead of this.
-        {
-            var errorParams = new DialogParameters();
-            errorParams.Add("ErrorMessage", ex.Message);
-
-            var dialog = await _dialogService.ShowAsync<ErrorDialog>("No games found.", errorParams);
-            _ = await dialog.Result;
-        
-            _navigation.NavigateTo($"/");
-        }
-    }
+        => await _hubConnection!.SendAsync(SessionEvents.StartSession.ToString(), BggUser, CurrentUser.Id);
 
     private async Task SetupExistingSession()
     {
@@ -277,7 +263,7 @@
 
         try 
         {
-            await _hubConnection!.SendAsync(SessionEvents.JoinSession.ToString(), _session, CurrentUser);
+            await _hubConnection!.SendAsync(SessionEvents.JoinSession.ToString(), _session, CurrentUser.Id);
         }
         catch(Exception)
         {
@@ -309,6 +295,17 @@
         var parameters = new DialogParameters();
         parameters.Add("SelectedGame", selectedGame);
         await _dialogService.ShowAsync<BoardGameDialog>("Got one!", parameters);
+    }
+
+    private async Task SessionError(NoGamesFoundException ex)
+    {
+        var errorParams = new DialogParameters();
+        errorParams.Add("ErrorMessage", ex.Message);
+
+        var dialog = await _dialogService.ShowAsync<ErrorDialog>("No games found.", errorParams);
+        _ = await dialog.Result;
+    
+        _navigation.NavigateTo($"/");
     }
 
     private void MapAvailableGamesFromSession()
@@ -364,6 +361,10 @@
 
         _hubConnection.On(SessionEvents.NoGamesSelected.ToString(), async () => {
             await NoGamesSelected();
+        });
+
+        _hubConnection.On<NoGamesFoundException>(SessionEvents.NoGamesFoundException.ToString(), async (exception) => {
+            await SessionError(exception);
         });
 
         await _hubConnection.StartAsync();
